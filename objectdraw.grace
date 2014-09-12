@@ -1,7 +1,3 @@
-// Dialect supporting graphics operations.  See the documentation for further
-// information on how to use this library
-// Written by Kim Bruce
-// Last revised 4/13/2014
 import "StandardPrelude" as StandardPrelude
 inherits StandardPrelude.methods
 
@@ -26,9 +22,29 @@ def pi: Number is public = 3.14159
 
 type Point = StandardPrelude.Point
 
-def SubobjectResponsibility = ProgrammingError.refine "Subobject Responsibility"
+type Foreign = Unknown
 
-def document = dom.document
+type MatchResult = {
+  result -> Object
+  bindings -> List<Object>
+}
+
+type Pattern = {
+  &(and : Pattern) -> Pattern
+  |(or : Pattern) -> Pattern
+  match(value : Object) -> MatchResult
+}
+
+type ExceptionKind = Pattern & type {
+  raise(message : String) -> Done
+  refine(name : String) -> ExceptionKind
+  parent -> ExceptionKind
+}
+
+def SubobjectResponsibility : ExceptionKind =
+  ProgrammingError.refine "Subobject Responsibility"
+
+def document : Foreign = dom.document
 
 type Action<R> = Block0<R>
 type Function<T, R> = Block1<T,R>
@@ -258,6 +274,29 @@ type GraphicApplication = Application & type {
   startGraphics -> Done
 }
 
+// Two-dimensional objects that can also be resized
+type Graphic2D = Graphic & type {
+  // dimensions of object
+  width->Number
+  height->Number
+  // Change dimensions of object
+  setSize(width:Number,height:Number)->Done
+  width:=(width:Number)->Done
+  height:=(height:Number)->Done
+}
+
+// One-dimensional objects
+type Line = Graphic & type {
+  // start and end of line
+  start -> Point
+  end -> Point
+
+  // set start and end of line
+  start:=(start':Point) -> Done
+  end:=(end':Point) -> Done
+  setEndPoints(start':Point,end':Point) -> Done
+}
+
 // Text that can be drawn on a canvas.
 type Text = Graphic & type {
 
@@ -348,10 +387,11 @@ type Color = {
 
 }
 
-def ColorOutOfRange = RuntimeError.refine "Color Out Of Range"
+def ColorOutOfRange : ExceptionKind =
+  StandardPrelude.RuntimeError.refine "Color Out Of Range"
 
 // Simple color class
-class color.r(r')g(g')b(b') -> Color{
+class color.r(r' : Number) g(g' : Number) b(b' : Number) -> Color {
   if((r' < 0) || (r' > 255)) then {
     ColorOutOfRange.raise "red index {r'} out of bounds 0..255"
   }
@@ -368,12 +408,12 @@ class color.r(r')g(g')b(b') -> Color{
   def green:Number is public = g'
   def blue:Number is public = b'
 
-  method asString {
+  method asString -> String {
     "rgb({red}, {green}, {blue})"
   }
 }
 
-// return a randomly chosen color
+// Produce a random color.
 method randomColor -> Color {
   color.r(randomIntFrom(0) to(255))
     g(randomIntFrom(0) to(255))
@@ -403,25 +443,33 @@ type MouseResponse = Procedure<MouseEvent>
 
 type KeyResponse = Procedure<KeyEvent>
 
-class event.source(source') -> Event {
-  def source is public = source'
+class event.source(source' : Component) -> Event {
+  def source : Component is public = source'
 
-  method asString { "Event on {source}" }
+  method asString -> String{
+    "Event on {source}"
+  }
 }
 
-class mouseEvent.source(source') event(event') -> MouseEvent {
+class mouseEvent.source(source' : Component)
+    event(event' : Foreign) -> MouseEvent {
   inherits event.source(source')
-  def at is public = event'.pageX @ event'.pageY
+  def at : Point is public = event'.pageX @ event'.pageY
 
-  method asString { "Mouse event on {source} at {at}"}
+  method asString -> String {
+    "Mouse event on {source} at {at}"
+  }
 }
 
-class keyEvent.source(source') event(event') -> KeyEvent {
+class keyEvent.source(source' : Component)
+    event(event' : Foreign) -> KeyEvent {
   inherits event.source(source')
-  def code is public = event'.which
+  def code : Number is public = event'.which
   //def character is public = dom.window.String.fromCharCode(event'.which)
 
-  method asString { "Key event on {source} for {code}"}
+  method asString -> String {
+    "Key event on {source} for {code}"
+  }
 }
 
 
@@ -578,7 +626,7 @@ def container : ComponentFactory<Container> is public = object {
 
     method at(index : Number) put(aComponent : Component) -> Done {
       if ((index < 1) || (index > (size + 1))) then {
-        collections.BoundsError.raiseForIndex(index)
+        BoundsError.raiseForIndex(index)
       }
 
       if (index == (size + 1)) then {
@@ -673,7 +721,7 @@ def input : ComponentFactory<Input> = object {
   }
 }
 
-def labelled : ComponentFactory<Labelled> = object {
+def labeled : ComponentFactory<Labelled> = object {
   factory method fromElement(element') -> Labelled {
     inherits input.fromElement(element')
 
@@ -692,14 +740,14 @@ def labelled : ComponentFactory<Labelled> = object {
   }
 
   factory method ofElementType(elementType : String)
-      labelled(label' : String) -> Labelled {
+      labeled(label' : String) -> Labelled {
     inherits ofElementType(elementType)
 
     self.label := label'
   }
 }
 
-class field.ofType(inputType : String) labelled(label' : String) -> Input {
+class field.ofType(inputType : String) labeled(label' : String) -> Input {
   inherits input.ofType(inputType)
 
   method label -> String {
@@ -722,15 +770,15 @@ class application.title(initialTitle : String)
   inherits container.fromElement(document.createDocumentFragment)
 
   var isOpened : Boolean := false
-  var theWindow
+  var theWindow : Foreign
 
   var theTitle : String := initialTitle
   var theWidth : Number := initialWidth
   var theHeight : Number := initialHeight
 
-  def events = list.empty
+  def events : List<Event> = list.empty
 
-  method element {
+  method element -> Foreign {
     if (isOpened) then {
       theWindow.document.body
     } else {
@@ -740,12 +788,12 @@ class application.title(initialTitle : String)
 
   class eventLog.kind(kind' : String)
       response(response' : Procedure) is confidential {
-    def kind is public = kind'
-    def response is public = response'
+    def kind : String is public = kind'
+    def response : Procedure is public = response'
   }
 
   method on(kind : String)
-      do(response : Procedure) -> Done is confidential {
+      do(response : Procedure<Event>) -> Done is confidential {
     if (isOpened) then {
       theWindow.addEventListener(kind, response)
     } else {
@@ -810,7 +858,7 @@ class application.title(initialTitle : String)
     }
   }
 
-  method onMouse(kind : String) do(bl) -> Done is confidential {
+  method onMouse(kind : String) do(bl : MouseResponse) -> Done is confidential {
     theWindow.addEventListener(kind, { evt ->
       bl.apply(evt.pageX @ evt.pageY)
     })
@@ -867,19 +915,19 @@ class application.title(initialTitle : String)
     }
   }
 
-  method onMouseClick(mouse : Point) {}
+  method onMouseClick(mouse : Point) -> Done {}
 
-  method onMousePress(mouse : Point) {}
+  method onMousePress(mouse : Point) -> Done {}
 
-  method onMouseRelease(mouse : Point) {}
+  method onMouseRelease(mouse : Point) -> Done {}
 
-  method onMouseMove(mouse : Point) {}
+  method onMouseMove(mouse : Point) -> Done {}
 
-  method onMouseDrag(mouse : Point) {}
+  method onMouseDrag(mouse : Point) -> Done {}
 
-  method onMouseEnter(mouse : Point) {}
+  method onMouseEnter(mouse : Point) -> Done {}
 
-  method onMouseExit(mouse : Point) {}
+  method onMouseExit(mouse : Point) -> Done {}
 
   method asString -> String {
     "Application with title \"{windowTitle.asString}\", width {width}, height {height}"
@@ -893,7 +941,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
   element.width := width'
   element.height := height'
 
-  def theContext = element.getContext("2d")
+  def theContext : Foreign = element.getContext("2d")
   theContext.lineWidth := 2
 
   method width -> Number {
@@ -905,7 +953,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
   }
 
   // list of all objects on canvas (hidden or not)
-  var theGraphics := collections.list.empty
+  var theGraphics : List<Graphic> := list.empty
 
   method draw -> Done {
     theContext.clearRect(0, 0, width, height)
@@ -924,7 +972,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
   }
 
   // Add new item d to canvas
-  method add(d:Graphic)->Done {
+  method add(d:Graphic) -> Done {
     theGraphics.add(d)
     draw
   }
@@ -996,50 +1044,32 @@ class graphicApplication
   def canvas : DrawingCanvas is public = drawingCanvas.size(theWidth, theHeight)
   append(canvas)
 
+  var interval : Foreign
+  var times : Number := 0
+
   method startGraphics -> Done {
     startApplication
 
     theWindow.document.documentElement.style.overflow := "hidden"
-    adjustToFit
+
+    interval := dom.window.setInterval({
+      adjustToFit
+    }, 50)
   }
 
   method adjustToFit -> Done {
     def body = theWindow.document.body
 
-    if ((theWindow.innerHeight == 0) || (theWindow.outerHeight == 0) ||
-        (theWindow.innerHeight == theWindow.outerHeight)) then {
-      dom.window.setTimeout({
-        adjustToFit
-      }, 50)
-    } else {
-      theWindow.resizeTo(body.offsetWidth +
-        (theWindow.outerWidth - theWindow.innerWidth),
-        body.offsetHeight + (theWindow.outerHeight - theWindow.innerHeight))
+    theWindow.resizeTo(body.offsetWidth +
+      (theWindow.outerWidth - theWindow.innerWidth),
+      body.offsetHeight + (theWindow.outerHeight - theWindow.innerHeight))
+
+    if (times == 9) then {
+      dom.window.clearInterval(interval)
     }
+
+    times := times + 1
   }
-}
-
-// Two-dimensional objects that can also be resized
-type Graphic2D = Graphic & type {
-  // dimensions of object
-  width->Number
-  height->Number
-  // Change dimensions of object
-  setSize(width:Number,height:Number)->Done
-  width:=(width:Number)->Done
-  height:=(height:Number)->Done
-}
-
-// One-dimensional objects
-type Line = Graphic & type {
-  // start and end of line
-  start -> Point
-  end -> Point
-
-  // set start and end of line
-  start:=(start':Point) -> Done
-  end:=(end':Point) -> Done
-  setEndPoints(start':Point,end':Point) -> Done
 }
 
 // predefined colors in objectdraw
@@ -1059,7 +1089,7 @@ def neutral:Color is public = color.r(220)g(220)b(220)
 class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
   // location of object on screen
-  var location is readable := location'
+  var location : Point is readable := location'
 
   // x coordinate of object
   method x -> Number {
@@ -1072,10 +1102,10 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
   }
 
   // The canvas this object is part of
-  var canvas:DrawingCanvas := canvas'
+  var canvas : DrawingCanvas := canvas'
 
   // the color of this object
-  var theColor:Color := black
+  var theColor : Color := black
 
   method color -> Color {theColor}
 
@@ -1159,12 +1189,14 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
   }
 
   // Draw this object on the applet !! confidential
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign) -> Done {
     SubobjectResponsibility.raise "draw not implemented for {self}"
   }
 
   // Return a string representation of the object
-  method asString->String{"Graphic object"}
+  method asString -> String {
+    "Graphic object"
+  }
 }
 
 
@@ -1192,7 +1224,7 @@ class drawable2D.at(location':Point)size(width':Number,height':Number)on(canvas'
     return !disjoint
   }
 
-  method asString->String{
+  method asString -> String {
     "drawable2D object at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1204,22 +1236,22 @@ class resizable2D.at(location':Point)size(width':Number,height':Number)
                    on(canvas':DrawingCanvas)  -> Graphic2D{
   inherits drawable2D.at(location')size(width',height')on(canvas')
 
-  method width:=(w:Number){
+  method width:=(w:Number) -> Done {
     theWidth := w
     setStateChanged
   }
 
-  method height:=(h:Number){
+  method height:=(h:Number) -> Done {
     theHeight := h
     setStateChanged
   }
 
-  method setSize(w:Number,h:Number){
+  method setSize(w:Number,h:Number) -> Done{
     width := w
     height := h
   }
 
-  method asString->String {
+  method asString -> String {
     "Resizable2D object at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1233,14 +1265,14 @@ class framedRect.at(location':Point)size(width':Number,height':Number)
   inherits resizable2D.at(location')size(width',height')on(canvas')
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign) -> Done {
     ctx.save
     ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.strokeRect(x, y, width, height)
     ctx.restore
   }
 
-  method asString->String {
+  method asString -> String {
     "FramedRect at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1250,19 +1282,19 @@ class framedRect.at(location':Point)size(width':Number,height':Number)
 // class to generate filled rectangle at (x',y') with size width' x height'
 // created on canvas'
 class filledRect.at(location':Point)size(width':Number,height':Number)
-           on(canvas':DrawingCanvas) -> Graphic2D{
+           on(canvas':DrawingCanvas) -> Graphic2D {
   inherits resizable2D.at(location')size(width',height')on(canvas')
 
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign) -> Done {
     ctx.save
     ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.fillRect(x, y, width, height)
     ctx.restore
   }
 
-  method asString->String {
+  method asString -> String {
     "FilledRect at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1277,19 +1309,21 @@ class framedOval.at(location':Point)size(width':Number,height':Number)
   inherits resizable2D.at(location')size(width',height')on(canvas')
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign)->Done {
     ctx.beginPath
     ctx.save
-    ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.translate(x+width/2,y+height/2)
     ctx.scale(width/2,height/2)
     ctx.arc(0,0,1,0,2*pi)
     ctx.restore
+    ctx.save
+    ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.stroke
+    ctx.restore
     ctx.closePath
   }
 
-  method asString->String {
+  method asString -> String {
     "FramedOval at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1304,19 +1338,21 @@ class filledOval.at(location':Point)size(width':Number,height':Number)
 
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign)->Done {
     ctx.beginPath
     ctx.save
-    ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.translate(x+width/2,y+height/2)
     ctx.scale(width/2,height/2)
     ctx.arc(0,0,1,0,2*pi)
     ctx.restore
+    ctx.save
+    ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.fill
+    ctx.restore
     ctx.closePath
   }
 
-  method asString->String {
+  method asString -> String {
     "FilledOval at ({x},{y}) "++
          "with height {height}, width {width}, and color {color}"
   }
@@ -1332,10 +1368,9 @@ class framedArc.at(location':Point)size(width':Number,height':Number)
   inherits resizable2D.at(location')size(width',height')on(canvas')
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign)->Done {
     ctx.beginPath
     ctx.save
-    ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.translate(x+width/2,y+height/2)
     ctx.scale(width/2,height/2)
     if (startAngle <= endAngle) then {
@@ -1344,11 +1379,14 @@ class framedArc.at(location':Point)size(width':Number,height':Number)
        ctx.arc(0,0,1,(endAngle*pi)/180,(startAngle*pi)/180)
     }
     ctx.restore
+    ctx.save
+    ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.stroke
+    ctx.restore
     ctx.closePath
   }
 
-  method asString->String {
+  method asString -> String {
     "FramedArc at ({x},{y}) "++
          "with height {height}, width {width}, and color {color} going "++
          "from {startAngle} degrees to {endAngle} degrees"
@@ -1366,10 +1404,9 @@ class filledArc.at(location':Point)size(width':Number,height':Number)
   inherits resizable2D.at(location')size(width',height')on(canvas')
   addToCanvas(canvas')
 
-  method draw(ctx)->Done {
+  method draw(ctx : Foreign)->Done {
     ctx.beginPath
     ctx.save
-    ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.translate(x+width/2,y+height/2)
     ctx.scale(width/2,height/2)
     if (startAngle <= endAngle) then {
@@ -1378,11 +1415,14 @@ class filledArc.at(location':Point)size(width':Number,height':Number)
       ctx.arc(0,0,1,(endAngle*pi)/180,(startAngle*pi)/180)
     }
     ctx.restore
+    ctx.save
+    ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
     ctx.fill
+    ctx.save
     ctx.closePath
   }
 
-  method asString->String {
+  method asString -> String {
     "FilledArc at ({x},{y}) "++
          "with height {height}, width {width}, and color {color} going "++
          "from {startAngle} degrees to {endAngle} degrees"
@@ -1390,10 +1430,18 @@ class filledArc.at(location':Point)size(width':Number,height':Number)
 
 }
 
+type DrawableImageFactory = {
+  //at(location : Point) size(width : Number, height : Number)
+    //file(fileName : String) on (canvas : DrawingCanvas) -> Graphic2D
+
+  at(location : Point) size(width : Number, height : Number)
+    url(url : String) on (canvas : DrawingCanvas) -> Graphic2D
+}
+
 // class to generate an image on canvas' at (x',y') with size width' x height'
 // The image is taken from the file fileName and must be in "png" format.
 // currently doesn't work, perhaps because can't find file.
-def drawableImage = object {
+def drawableImage : DrawableImageFactory = object {
 //  factory method at(location' : Point)
 //      size(width' : Number, height' : Number)
 //      file(fileName : String)
@@ -1407,11 +1455,11 @@ def drawableImage = object {
 //    def theImage = dom.document.createElement("img")
 //    theImage.src := dom.window.graceReadFile(fileName)
 //
-//    method draw(ctx) -> Done {
+//    method draw(ctx : Foreign) -> Done {
 //      ctx.drawImage(theImage, x, y, width, height)
 //    }
 //
-//    method asString->String {
+//    method asString -> String {
 //      "DrawableImage at ({x},{y}) "++
 //           "with height {height}, width {width}, "++
 //           "from file {fileName}"
@@ -1433,11 +1481,11 @@ def drawableImage = object {
       addToCanvas(canvas')
     })
 
-    method draw(ctx) -> Done {
+    method draw(ctx : Foreign) -> Done {
       ctx.drawImage(theImage, x, y, width, height)
     }
 
-    method asString->String {
+    method asString -> String {
       "DrawableImage at ({x},{y}) "++
            "with height {height}, width {width}, "++
            "from url {url}"
@@ -1487,7 +1535,7 @@ def line = object {
       end := newEnd
     }
 
-    method draw(ctx)->Done {
+    method draw(ctx : Foreign)->Done {
       ctx.save
       ctx.strokeStyle := "rgb({color.red}, {color.green}, {color.blue})"
       ctx.beginPath
@@ -1527,7 +1575,7 @@ def line = object {
       distToSegment(pt,start,end) < tolerance
     }
 
-    method asString->String {
+    method asString -> String {
       "Line from {start} to {end} with color {color}"
     }
   }
@@ -1558,7 +1606,7 @@ class text.at(location':Point)
     theContents.size*fsize/2
   }
 
-  method draw(ctx) -> Done {
+  method draw(ctx : Foreign) -> Done {
     ctx.save
     ctx.font := "{fontSize}pt sans-serif"
     ctx.fillStyle := "rgb({color.red}, {color.green}, {color.blue})"
@@ -1606,13 +1654,19 @@ class textBox.with(contents' : String) -> TextBox {
   contents := contents'
 }
 
-class button.labelled(label' : String) -> Button {
-  inherits labelled.ofElementType("button") labelled(label')
+class button.labeled(label' : String) -> Button {
+  inherits labeled.ofElementType("button") labeled(label')
 }
 
-def textField is public = object {
-  factory method labelled(label' : String) -> Input {
-    inherits field.ofType("text") labelled(label')
+type FieldFactory = {
+  labeled(label : String) -> Input
+
+  unlabeled -> Input
+}
+
+def textField : FieldFactory is public = object {
+  factory method labeled(label' : String) -> TextField {
+    inherits field.ofType("text") labeled(label')
 
     method text -> String {
       self.element.value
@@ -1623,8 +1677,8 @@ def textField is public = object {
     }
   }
 
-  factory method unlabelled -> TextField {
-    inherits labelled ""
+  factory method unlabeled -> TextField {
+    inherits labeled ""
   }
 
   method asString -> String {
@@ -1632,15 +1686,15 @@ def textField is public = object {
   }
 }
 
-def passwordField is public = object {
-  factory method labelled(label : String) -> Input {
-    inherits textField.labelled(label)
+def passwordField : FieldFactory is public = object {
+  factory method labeled(label : String) -> Input {
+    inherits textField.labeled(label)
 
     self.element.setAttribute("type", "password")
   }
 
-  factory method unlabelled -> TextField {
-    inherits labelled ""
+  factory method unlabeled -> TextField {
+    inherits labeled ""
   }
 
   method asString -> String {
@@ -1648,9 +1702,9 @@ def passwordField is public = object {
   }
 }
 
-def numberField is public = object {
-  factory method labelled(label : String) -> Input {
-    inherits field.ofType("number") labelled(label)
+def numberField : FieldFactory is public = object {
+  factory method labeled(label : String) -> Input {
+    inherits field.ofType("number") labeled(label)
 
     method number -> Number {
       self.element.value.asNumber
@@ -1661,8 +1715,8 @@ def numberField is public = object {
     }
   }
 
-  factory method unlabelled -> TextField {
-    inherits labelled ""
+  factory method unlabeled -> TextField {
+    inherits labeled ""
   }
 
   method asString -> String {
@@ -1673,8 +1727,8 @@ def numberField is public = object {
 class selectBox.options(options : Sequence<String>) -> Choice {
   inherits input.ofElementType("select")
 
-  for (options) do { name ->
-    def anOption = document.createElement("option")
+  for (options) do { name : String ->
+    def anOption : Foreign = document.createElement("option")
     anOption.value := name
     anOption.textContent := name
     self.element.appendChild(anOption)
