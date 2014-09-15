@@ -486,6 +486,10 @@ type ComponentFactory<T> = {
 
 }
 
+// The maximum amount of time a mouse can be pressed before being released in
+// order for the event to be registered as a click.
+def maxClickTime : Number = 200
+
 def component : ComponentFactory<Component> = object {
   factory method fromElement(element') -> Component {
     def element is public = element'
@@ -512,7 +516,17 @@ def component : ComponentFactory<Component> = object {
     }
 
     method onMouseClickDo(f : MouseResponse) -> Done {
-      on "click" withPointDo(f)
+      var lastDown : Foreign
+
+      on "mousedown" do { event' : Foreign ->
+        lastDown := event'.timeStamp
+      }
+
+      on "click" do { event' : Foreign ->
+        if ((event'.timeStamp - lastDown) <= maxClickTime) then {
+          f.apply(mouseEvent.source(self) event(event'))
+        }
+      }
     }
 
     method onMousePressDo(f : MouseResponse) -> Done {
