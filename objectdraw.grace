@@ -100,13 +100,13 @@ type Component = {
   // Respond to a key release in this component with the given event.
   onKeyReleaseDo(f : KeyResponse) -> Done
 
-  // Cause this component to dynamically fill up any empty space in the
-  // direction of the container it is in.
-  stretchToFill -> Done
+  // Whether this component will dynamically fill up any empty space in the
+  // direction of its parent container.
+  isFlexible -> Boolean
 
-  // Cause this component to not dynamically resize, and always retain its set
-  // size.
-  exactSize -> Done
+  // Set whether this component will dynamically fill up any empty space in the
+  // direction of its parent container.
+  flexible := (value : Boolean) -> Done
 
 }
 
@@ -600,12 +600,16 @@ def component : ComponentFactory<Component> = object {
       on "keypress" withKeyDo(f)
     }
 
-    method stretchToFill -> Done {
-      element.style.flexGrow := 1
+    method isFlexible -> Boolean {
+      element.style.flexGrow.asNumber > 0
     }
 
-    method exactSize -> Done {
-      element.style.flexGrow := 0
+    method flexible := (value : Boolean) -> Done {
+      element.style.flexGrow := if (value) then {
+        1
+      } else {
+        0
+      }
     }
   }
 
