@@ -661,7 +661,7 @@ def container : ComponentFactory<Container> is public = object {
       if (isEmpty) then {
         element.appendChild(aComponent.element)
       } else {
-        element.firstChild.insertBefore(aComponent.element)
+        element.insertBefore(aComponent.element, element.firstChild)
       }
 
       done
