@@ -887,7 +887,11 @@ class application.title(initialTitle : String)
       theWindow := dom.window.open("", "", "width={theWidth},height={theHeight}")
       theWindow.document.title := theTitle
       theWindow.document.body.appendChild(element)
-      dom.window.graceRegisterWindow(theWindow)
+
+      if (dom.doesObject(dom.window) haveProperty("graceRegisterWindow")) then {
+        dom.window.graceRegisterWindow(theWindow)
+      }
+
       isOpened := true
 
       element.style.margin := "0px"
