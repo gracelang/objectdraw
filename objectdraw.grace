@@ -1778,3 +1778,62 @@ class selectBox.options(options : Sequence<String>) -> Choice {
   }
 }
 
+type Audio = {
+
+  // The source URL of the audio.
+  source -> String
+  source := (value : String) -> Done
+
+  // Play the audio.
+  play -> Done
+
+  // Pause the audio.
+  pause -> Done
+
+  // Whether the audio will loop back to the start when it ends.
+  isLooping -> Boolean
+  looping := (value : Boolean) -> Done
+
+  // Whether the audio has finished playing.
+  isEnded -> Boolean
+
+}
+
+class audio.url(source' : String) -> Audio {
+  def element = document.createElement("audio")
+
+  element.src := source'
+
+  if (dom.doesObject(dom.window) haveProperty("graceRegisterAudio")) then {
+    dom.window.graceRegisterAudio(element)
+  }
+
+  method source -> String {
+    element.src
+  }
+
+  method source := (value : String) -> Done {
+    element.src := value
+  }
+
+  method play -> Done {
+    element.play
+  }
+
+  method pause -> Done {
+    element.pause
+  }
+
+  method isLooping -> Boolean {
+    element.loop
+  }
+
+  method looping := (value : Boolean) -> Done {
+    element.loop := value
+  }
+
+  method isEnded -> Boolean {
+    element.ended
+  }
+}
+
