@@ -690,6 +690,7 @@ def container : ComponentFactory<Container> is public = object {
 
     method flex -> Done is confidential {
       element.style.display := "inline-flex"
+      element.style.alignItems := "flex-start"
       element.style.flexFlow := "row wrap"
     }
 
@@ -702,6 +703,18 @@ def container : ComponentFactory<Container> is public = object {
       flex
       element.style.flexDirection := "column"
     }
+  }
+
+  factory method empty -> Container {
+    inherits ofElementType("div")
+  }
+
+  factory method size(width' : Number, height' : Number) -> Container {
+    inherits empty
+
+    self.element.style.width := "{width'}px"
+    self.element.style.height := "{height'}px"
+    self.element.style.overflow := "auto"
   }
 }
 
@@ -1066,31 +1079,31 @@ class graphicApplication
   def canvas : DrawingCanvas is public = drawingCanvas.size(theWidth, theHeight)
   append(canvas)
 
-  var interval : Foreign
-  var times : Number := 0
-
   method startGraphics -> Done {
     startApplication
 
     theWindow.document.documentElement.style.overflow := "hidden"
 
-    interval := dom.window.setInterval({
-      adjustToFit
+    var ignore : Boolean := true
+
+    var interval : Foreign := dom.window.setInterval({
+      ignore := true
+      theWindow.resizeTo(theWindow.outerWidth,
+        theWindow.document.body.offsetHeight +
+        (theWindow.outerHeight - theWindow.innerHeight))
     }, 50)
-  }
 
-  method adjustToFit -> Done {
-    def body = theWindow.document.body
-
-    theWindow.resizeTo(body.offsetWidth +
-      (theWindow.outerWidth - theWindow.innerWidth),
-      body.offsetHeight + (theWindow.outerHeight - theWindow.innerHeight))
-
-    if (times == 9) then {
-      dom.window.clearInterval(interval)
-    }
-
-    times := times + 1
+    // Ignore resizes for half a second (to deal with the window resizing
+    // itself), then stop auto resizing if the user resizes it themselves.
+    dom.window.setTimeout({
+      theWindow.addEventListener("resize", { _ ->
+        if (ignore) then {
+          ignore := false
+        } else {
+          dom.window.clearInterval(interval)
+        }
+      })
+    }, 500)
   }
 }
 
