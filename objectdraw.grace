@@ -7,6 +7,9 @@ import "math" as math
 
 // ** Re-exports and helpers ***************************************************
 
+// The frame rate of the drawing.
+def frameRate : Number = 30
+
 // A random number from m to n, inclusive.
 method randomNumberFrom(m : Number) to(n : Number) -> Number {
   ((n - m) * math.random) + m
@@ -240,7 +243,7 @@ type DrawingCanvas = {
   // remove d from window
   remove(d:Graphic)->Done
 
-  draw -> Done
+  notifyRedraw -> Done
 
   // clear the canvas
   clear -> Done
@@ -990,46 +993,48 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
   // list of all objects on canvas (hidden or not)
   var theGraphics := []
 
-  method draw -> Done {
-    theContext.clearRect(0, 0, width, height)
+  var redraw : Boolean := false
 
-    for (theGraphics) do { aGraphic ->
-      if (aGraphic.isVisible) then {
-        aGraphic.draw(theContext)
-      }
-    }
+  method notifyRedraw -> Done {
+    redraw := true
   }
+
+  element.ownerDocument.defaultView.setInterval({ _ ->
+    if (redraw) then {
+      dom.draw(theContext, theGraphics, width, height)
+    }
+  }, 1000 / frameRate)
 
   // remove all items from canvas
   method clear -> Done {
     theGraphics := []
-    draw
+    notifyRedraw
   }
 
   // Add new item d to canvas
   method add(d:Graphic) -> Done {
     theGraphics.push(d)
-    draw
+    notifyRedraw
   }
 
   // remove m from items on canvas
   method remove(aGraphic : Graphic) -> Done {
     theGraphics.remove(aGraphic)
-    draw
+    notifyRedraw
   }
 
   // send item d to front/top layer of canvas
   method sendToFront(aGraphic : Graphic) -> Done {
     theGraphics.remove(aGraphic)
     theGraphics.push(aGraphic)
-    draw
+    notifyRedraw
   }
 
   // send item d to back/bottom layer of canvas
   method sendToBack(aGraphic : Graphic) -> Done {
     theGraphics.remove(aGraphic)
     theGraphics.unshift(aGraphic)
-    draw
+    notifyRedraw
   }
 
   // send item d one position higher on canvas
@@ -1042,7 +1047,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
 
     theGraphics.remove(aGraphic)
     theGraphics.at(theIndex + 1) add(aGraphic)
-    draw
+    notifyRedraw
   }
 
   // send item d one position lower on canvas
@@ -1055,7 +1060,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
 
     theGraphics.remove(aGraphic)
     theGraphics.at(theIndex - 1) add(aGraphic)
-    draw
+    notifyRedraw
   }
 
   // debug method to print all objects on canvas
@@ -1146,14 +1151,14 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
   method color:=(newColor:Color) -> Done {
     theColor := newColor
-    setStateChanged
+    notifyRedraw
   }
 
   var theFrameColor:Color := black
   method frameColor -> Color { theFrameColor }
   method frameColor:=(newfColor:Color) -> Done {
     theFrameColor := newfColor
-    setStateChanged
+    notifyRedraw
   }
 
   // Determine if object is shown on screen
@@ -1161,7 +1166,7 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
   method visible:=(b:Boolean) -> Done {
     isVisible := b
-    setStateChanged
+    notifyRedraw
   }
 
   // Add this object to canvas c
@@ -1169,25 +1174,25 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
     removeFromCanvas
     canvas := c
     c.add(self)
-    setStateChanged
+    notifyRedraw
   }
 
   // Remove this object from its canvas
   method removeFromCanvas->Done {
     canvas.remove(self)
-    setStateChanged
+    notifyRedraw
   }
 
   // move this object to newLocn
   method moveTo(newLocn:Point)->Done{
     location := newLocn
-    setStateChanged
+    notifyRedraw
   }
 
   // move this object dx to the right and dy down
   method moveBy(dx:Number,dy:Number)->Done{
     location := location+(dx@dy)
-    setStateChanged
+    notifyRedraw
   }
 
   method contains(locn:Point) -> Boolean {
@@ -1219,8 +1224,8 @@ class drawable.at(location':Point) on (canvas':DrawingCanvas) -> Graphic {
   }
 
   // Tell the system that the screen needs to be repainted
-  method setStateChanged->Done is confidential {
-    canvas.draw
+  method notifyRedraw -> Done is confidential {
+    canvas.notifyRedraw
   }
 
   // Draw this object on the applet !! confidential
@@ -1273,12 +1278,12 @@ class resizable2D.at(location':Point)size(width':Number,height':Number)
 
   method width:=(w:Number) -> Done {
     theWidth := w
-    setStateChanged
+    notifyRedraw
   }
 
   method height:=(h:Number) -> Done {
     theHeight := h
-    setStateChanged
+    notifyRedraw
   }
 
   method setSize(w:Number,h:Number) -> Done{
@@ -1557,12 +1562,12 @@ def line = object {
     // set start and end of line
     method start:=(newStart:Point) -> Done {
       location := newStart
-      setStateChanged
+      notifyRedraw
     }
 
     method end:=(newEnd:Point) -> Done {
       theEnd := newEnd
-      setStateChanged
+      notifyRedraw
     }
 
     method setEndPoints(newStart:Point,newEnd:Point) -> Done {
@@ -1583,7 +1588,7 @@ def line = object {
     method moveBy(dx:Number,dy:Number) -> Done {
       location := location + (dx@dy)  //.translate(dx,dy)
       theEnd := theEnd + (dx@dy) //.translate(dx,dy)
-      setStateChanged
+      notifyRedraw
     }
 
     method dist2(v:Point, w:Point) -> Number is confidential {
@@ -1655,12 +1660,12 @@ class text.at(location':Point)
 
   method contents:=(newContents:String) -> Done {
     theContents := newContents
-    setStateChanged
+    notifyRedraw
   }
 
   method fontSize:=(size':Number) -> Done {
     fsize := size'
-    setStateChanged
+    notifyRedraw
   }
 
   method fontSize -> Number {
