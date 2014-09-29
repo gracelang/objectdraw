@@ -1587,7 +1587,7 @@ def line = object {
     }
 
     method dist2(v:Point, w:Point) -> Number is confidential {
-      math.pow(v.x - w.x, 2) + math.pow(v.y - w.y, 2)
+      ((v.x - w.x) ^ 2) + ((v.y - w.y) ^ 2)
     }
 
     method distToSegmentSquared(p:Point, v:Point, w:Point) -> Number
