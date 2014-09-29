@@ -1086,7 +1086,7 @@ class graphicApplication
 
     var ignore : Boolean := true
 
-    var interval : Foreign := dom.window.setInterval({
+    var interval : Foreign := theWindow.setInterval({
       ignore := true
       theWindow.resizeTo(theWindow.outerWidth,
         theWindow.document.body.offsetHeight +
@@ -1095,12 +1095,12 @@ class graphicApplication
 
     // Ignore resizes for half a second (to deal with the window resizing
     // itself), then stop auto resizing if the user resizes it themselves.
-    dom.window.setTimeout({
+    theWindow.setTimeout({
       theWindow.addEventListener("resize", { _ ->
         if (ignore) then {
           ignore := false
         } else {
-          dom.window.clearInterval(interval)
+          theWindow.clearInterval(interval)
         }
       })
     }, 500)
