@@ -807,7 +807,7 @@ class application.title(initialTitle : String)
   var theWidth : Number := initialWidth
   var theHeight : Number := initialHeight
 
-  def events : List<Event> = list.empty
+  def events = []
 
   method element -> Foreign {
     if (isOpened) then {
@@ -988,7 +988,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
   }
 
   // list of all objects on canvas (hidden or not)
-  var theGraphics : List<Graphic> := list.empty
+  var theGraphics := []
 
   method draw -> Done {
     theContext.clearRect(0, 0, width, height)
@@ -1002,33 +1002,33 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
 
   // remove all items from canvas
   method clear -> Done {
-    theGraphics := list.new
+    theGraphics := []
     draw
   }
 
   // Add new item d to canvas
   method add(d:Graphic) -> Done {
-    theGraphics.add(d)
+    theGraphics.push(d)
     draw
   }
 
   // remove m from items on canvas
-  method remove(aGraphic : Graphic) -> Done{
-    theGraphics.remove(aGraphic) ifAbsent {}
+  method remove(aGraphic : Graphic) -> Done {
+    theGraphics.remove(aGraphic)
     draw
   }
 
   // send item d to front/top layer of canvas
   method sendToFront(aGraphic : Graphic) -> Done {
-   remove(aGraphic)
-   theGraphics.addLast(aGraphic)
-   draw
+    theGraphics.remove(aGraphic)
+    theGraphics.push(aGraphic)
+    draw
   }
 
   // send item d to back/bottom layer of canvas
   method sendToBack(aGraphic : Graphic) -> Done {
-    remove(aGraphic)
-    theGraphics.addFirst(aGraphic)
+    theGraphics.remove(aGraphic)
+    theGraphics.unshift(aGraphic)
     draw
   }
 
@@ -1040,8 +1040,8 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
       return
     }
 
-    remove(aGraphic)
-    theGraphics.at(theIndex + 1) put(aGraphic)
+    theGraphics.remove(aGraphic)
+    theGraphics.at(theIndex + 1) add(aGraphic)
     draw
   }
 
@@ -1053,8 +1053,8 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
       return
     }
 
-    remove(aGraphic)
-    theGraphics.at(theIndex - 1) put(aGraphic)
+    theGraphics.remove(aGraphic)
+    theGraphics.at(theIndex - 1) add(aGraphic)
     draw
   }
 
