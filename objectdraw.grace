@@ -461,7 +461,8 @@ class event.source(source' : Component) -> Event {
 class mouseEvent.source(source' : Component)
     event(event' : Foreign) -> MouseEvent {
   inherits event.source(source')
-  def at : Point is public = event'.pageX @ event'.pageY
+  def at : Point is public = (event'.clientX - source.element.offsetLeft) @
+    (event'.clientY - source.element.offsetTop)
 
   method asString -> String {
     "Mouse event on {source} at {at}"
