@@ -151,29 +151,6 @@ type Application = Container & type {
   windowTitle -> String
   windowTitle := (value : String) -> Done
 
-  // Respond to a mouse click (press and release) in this component at the given
-  // point.
-  onMouseClick(mouse : Point)
-
-  // Respond to a mouse press in this component at the given point.
-  onMousePress(mouse : Point)
-
-  // Respond to a mouse release in this component at the given point.
-  onMouseRelease(mouse : Point)
-
-  // Respond to a mouse move in this component at the given point.
-  onMouseMove(mouse : Point)
-
-  // Respond to a mouse drag (move during press) in this component at the given
-  // point.
-  onMouseDrag(mouse : Point)
-
-  // Respond to a mouse entering this component at the given point.
-  onMouseEnter(mouse : Point)
-
-  // Respond to a mouse exiting this component at the given point.
-  onMouseExit(mouse : Point)
-
 }
 
 // Objects that can be drawn on a canvas and moved around.
@@ -237,6 +214,9 @@ type Graphic = {
 // DrawingCanvas holding graphic objects
 type DrawingCanvas = {
 
+  // Start drawing on the canvas. Will continue until the canvas is destroyed.
+  startDrawing -> Done
+
   // add d to canvas
   add(d:Graphic)->Done
 
@@ -272,8 +252,31 @@ type GraphicApplication = Application & type {
   // canvas holds graphic objects on screen
   canvas -> DrawingCanvas
 
-  // must be invoked to create window and its contents
-  // as well as prepare the window to handle mouse events
+  // Respond to a mouse click (press and release) in the canvas at the given
+  // point.
+  onMouseClick(mouse : Point)
+
+  // Respond to a mouse press in the canvas at the given point.
+  onMousePress(mouse : Point)
+
+  // Respond to a mouse release in the canvas at the given point.
+  onMouseRelease(mouse : Point)
+
+  // Respond to a mouse move in the canvas at the given point.
+  onMouseMove(mouse : Point)
+
+  // Respond to a mouse drag (move during press) in the canvas at the given
+  // point.
+  onMouseDrag(mouse : Point)
+
+  // Respond to a mouse entering the canvas at the given point.
+  onMouseEnter(mouse : Point)
+
+  // Respond to a mouse exiting the canvas at the given point.
+  onMouseExit(mouse : Point)
+
+  // must be invoked to create window and its contents as well as prepare the
+  // window to handle mouse events
   startGraphics -> Done
 }
 
@@ -693,7 +696,7 @@ def container : ComponentFactory<Container> is public = object {
 
     method flex -> Done is confidential {
       element.style.display := "inline-flex"
-      element.style.alignItems := "flex-start"
+      element.style.justifyContent := "center"
       element.style.flexFlow := "row wrap"
     }
 
@@ -710,6 +713,8 @@ def container : ComponentFactory<Container> is public = object {
 
   factory method empty -> Container {
     inherits ofElementType("div")
+
+    self.arrangeHorizontal
   }
 
   factory method size(width' : Number, height' : Number) -> Container {
@@ -820,6 +825,24 @@ class application.title(initialTitle : String)
     }
   }
 
+  var isHorizontal : Boolean := true
+
+  method arrangeHorizontal -> Done {
+    if (isOpened) then {
+      super.arrangeHorizontal
+    } else {
+      isHorizontal := true
+    }
+  }
+
+  method arrangeVertical -> Done {
+    if (isOpened) then {
+      super.arrangeVertical
+    } else {
+      isHorizontal := false
+    }
+  }
+
   class eventLog.kind(kind' : String)
       response(response' : Procedure) is confidential {
     def kind : String is public = kind'
@@ -910,39 +933,17 @@ class application.title(initialTitle : String)
 
       isOpened := true
 
+      element.style.width := "100%"
       element.style.margin := "0px"
-      arrangeHorizontal
+
+      if (isHorizontal) then {
+        arrangeHorizontal
+      } else {
+        arrangeVertical
+      }
 
       for (events) do { anEvent ->
         on(anEvent.kind) do(anEvent.response)
-      }
-
-      onMouseClickDo { event' ->
-        onMouseClick(event'.at)
-      }
-
-      onMousePressDo { event' ->
-        onMousePress(event'.at)
-      }
-
-      onMouseReleaseDo { event' ->
-        onMouseRelease(event'.at)
-      }
-
-      onMouseMoveDo { event' ->
-        onMouseMove(event'.at)
-      }
-
-      onMouseDragDo { event' ->
-        onMouseDrag(event'.at)
-      }
-
-      onMouseEnterDo { event' ->
-        onMouseEnter(event'.at)
-      }
-
-      onMouseExitDo { event' ->
-        onMouseExit(event'.at)
       }
     }
   }
@@ -952,20 +953,6 @@ class application.title(initialTitle : String)
       theWindow.close
     }
   }
-
-  method onMouseClick(mouse : Point) -> Done {}
-
-  method onMousePress(mouse : Point) -> Done {}
-
-  method onMouseRelease(mouse : Point) -> Done {}
-
-  method onMouseMove(mouse : Point) -> Done {}
-
-  method onMouseDrag(mouse : Point) -> Done {}
-
-  method onMouseEnter(mouse : Point) -> Done {}
-
-  method onMouseExit(mouse : Point) -> Done {}
 
   method asString -> String {
     "Application with title \"{windowTitle.asString}\", width {width}, height {height}"
@@ -978,6 +965,7 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
 
   element.width := width'
   element.height := height'
+  element.style.alignSelf := "center"
 
   def theContext : Foreign = element.getContext("2d")
   theContext.lineWidth := 2
@@ -999,11 +987,13 @@ class drawingCanvas.size(width' : Number, height' : Number) -> DrawingCanvas {
     redraw := true
   }
 
-  element.ownerDocument.defaultView.setInterval({ _ ->
-    if (redraw) then {
-      dom.draw(theContext, theGraphics, width, height)
-    }
-  }, 1000 / frameRate)
+  method startDrawing -> Done {
+    element.ownerDocument.defaultView.setInterval({
+      if (redraw) then {
+        dom.draw(theContext, theGraphics, width, height)
+      }
+    }, 1000 / frameRate)
+  }
 
   // remove all items from canvas
   method clear -> Done {
@@ -1082,33 +1072,78 @@ class graphicApplication
   inherits application.title("Simple graphics") size(theWidth', theHeight')
 
   def canvas : DrawingCanvas is public = drawingCanvas.size(theWidth, theHeight)
-  append(canvas)
+
+  def before : Container = container.empty
+  def after : Container = container.empty
+
+  arrangeVertical
+  element.appendChild(before.element)
+  element.appendChild(canvas.element)
+  element.appendChild(after.element)
+
+  method prepend(com : Component) -> Done {
+    before.prepend(com)
+  }
+
+  method append(com : Component) -> Done {
+    after.append(com)
+  }
+
+  method onMouseClick(mouse : Point) -> Done {}
+
+  method onMousePress(mouse : Point) -> Done {}
+
+  method onMouseRelease(mouse : Point) -> Done {}
+
+  method onMouseMove(mouse : Point) -> Done {}
+
+  method onMouseDrag(mouse : Point) -> Done {}
+
+  method onMouseEnter(mouse : Point) -> Done {}
+
+  method onMouseExit(mouse : Point) -> Done {}
 
   method startGraphics -> Done {
+    def parent = dom.document.createElement("div")
+    parent.className := "height-calculator"
+    parent.style.width := "{theWidth}px"
+    parent.appendChild(element.cloneNode(true))
+    document.body.appendChild(parent)
+    theHeight := parent.offsetHeight
+    document.body.removeChild(parent)
+
     startApplication
+    canvas.startDrawing
 
     theWindow.document.documentElement.style.overflow := "hidden"
 
-    var ignore : Boolean := true
+    canvas.onMouseClickDo { event' ->
+      onMouseClick(event'.at)
+    }
 
-    var interval : Foreign := theWindow.setInterval({
-      ignore := true
-      theWindow.resizeTo(theWindow.outerWidth,
-        theWindow.document.body.offsetHeight +
-        (theWindow.outerHeight - theWindow.innerHeight))
-    }, 50)
+    canvas.onMousePressDo { event' ->
+      onMousePress(event'.at)
+    }
 
-    // Ignore resizes for half a second (to deal with the window resizing
-    // itself), then stop auto resizing if the user resizes it themselves.
-    theWindow.setTimeout({
-      theWindow.addEventListener("resize", { _ ->
-        if (ignore) then {
-          ignore := false
-        } else {
-          theWindow.clearInterval(interval)
-        }
-      })
-    }, 500)
+    canvas.onMouseReleaseDo { event' ->
+      onMouseRelease(event'.at)
+    }
+
+    canvas.onMouseMoveDo { event' ->
+      onMouseMove(event'.at)
+    }
+
+    canvas.onMouseDragDo { event' ->
+      onMouseDrag(event'.at)
+    }
+
+    canvas.onMouseEnterDo { event' ->
+      onMouseEnter(event'.at)
+    }
+
+    canvas.onMouseExitDo { event' ->
+      onMouseExit(event'.at)
+    }
   }
 }
 
