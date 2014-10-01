@@ -374,7 +374,8 @@ type NumberField = Input & type {
 type Choice = Input & type {
 
   // The currently selected option.
-    selected -> String
+  selected -> String
+  selected := (value : String) -> Done
 
 }
 
@@ -764,12 +765,16 @@ def labeled : ComponentFactory<Labelled> = object {
   factory method fromElement(element') -> Labelled {
     inherits input.fromElement(element')
 
+    method labelElement -> Foreign is confidential {
+      self.element
+    }
+
     method label -> String {
-      self.element.textContent
+      labelElement.textContent
     }
 
     method label := (value : String) -> Done {
-      self.element.textContent := value
+      labelElement.textContent := value
       done
     }
   }
@@ -1104,7 +1109,7 @@ class graphicApplication
   method onMouseExit(mouse : Point) -> Done {}
 
   method startGraphics -> Done {
-    def parent = dom.document.createElement("div")
+    def parent = document.createElement("div")
     parent.className := "height-calculator"
     parent.style.width := "{theWidth}px"
     parent.appendChild(element.cloneNode(true))
@@ -1549,7 +1554,7 @@ def drawableImage : DrawableImageFactory = object {
       on(canvas' : DrawingCanvas) -> Graphic2D {
     inherits resizable2D.at(location')size(width',height')on(canvas')
 
-    var theImage := dom.document.createElement("img")
+    var theImage := document.createElement("img")
     theImage.src := url
 
     theImage.addEventListener("load", { _ ->
@@ -1799,22 +1804,46 @@ def numberField : FieldFactory is public = object {
   }
 }
 
-class selectBox.options(options : Sequence<String>) -> Choice {
-  inherits input.ofElementType("select")
+type ChoiceFactory = {
+  options(*options : String) labeled(label : String) -> Choice
+  options(*options : String) -> Choice
+}
 
-  for (options) do { name : String ->
-    def anOption : Foreign = document.createElement("option")
-    anOption.value := name
-    anOption.textContent := name
-    self.element.appendChild(anOption)
+def selectBox : ChoiceFactory is public = object {
+  method options(*options : String) labeled(label' : String) -> Choice {
+    def labeler : Foreign = document.createElement("option")
+    labeler.value := ""
+
+    object {
+      inherits labeled.ofElementType("select") labeled(label')
+
+      method labelElement -> Foreign {
+        labeler
+      }
+
+      self.element.appendChild(labeler)
+
+      for (options) do { name : String ->
+        def anOption : Foreign = document.createElement("option")
+        anOption.value := name
+        anOption.textContent := name
+        self.element.appendChild(anOption)
+      }
+
+      method selected -> String {
+        self.element.value
+      }
+
+      method selected := (value : String) -> Done {
+        self.element.value := value
+      }
+    }
   }
 
-  method selected -> String {
-    self.element.value
-  }
+  factory method options(*options : String) -> Choice {
+    inherits options(options) labeled ""
 
-  method select := (value : String) -> Done {
-    self.element.value := value
+    self.element.removeChild(self.labelElement)
   }
 }
 
