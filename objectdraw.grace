@@ -1810,7 +1810,7 @@ type ChoiceFactory = {
 }
 
 def selectBox : ChoiceFactory is public = object {
-  method options(*options : String) labeled(label' : String) -> Choice {
+  method optionsFrom(options : Sequence<String>) labeled(label' : String) -> Choice {
     def labeler : Foreign = document.createElement("option")
     labeler.value := ""
 
@@ -1840,10 +1840,18 @@ def selectBox : ChoiceFactory is public = object {
     }
   }
 
-  factory method options(*options : String) -> Choice {
-    inherits options(options) labeled ""
+  factory method options(*options : String) labeled(label' : String) -> Choice {
+    inherits optionsFrom(options) labeled(label')
+  }
+
+  factory method optionsFrom(options : Sequence<String>) -> Choice {
+    inherits optionsFrom(options) labeled ""
 
     self.element.removeChild(self.labelElement)
+  }
+
+  factory method options(*options : String) -> Choice {
+    inherits optionsFrom(options)
   }
 }
 
