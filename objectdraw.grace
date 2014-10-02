@@ -365,8 +365,8 @@ type TextField = Input & type {
 type NumberField = Input & type {
 
   // The contents of the number field.
-  number -> String
-  number := (value : String) -> Done
+  number -> Number
+  number := (value : Number) -> Done
 
 }
 
@@ -1784,8 +1784,8 @@ def passwordField : FieldFactory is public = object {
 }
 
 def numberField : FieldFactory is public = object {
-  factory method labeled(label : String) -> Input {
-    inherits field.ofType("number") labeled(label)
+  factory method labeled(label' : String) -> NumberField {
+    inherits field.ofType("number") labeled(label')
 
     method number -> Number {
       self.element.value.asNumber
@@ -1796,7 +1796,7 @@ def numberField : FieldFactory is public = object {
     }
   }
 
-  factory method unlabeled -> TextField {
+  factory method unlabeled -> NumberField {
     inherits labeled ""
   }
 
