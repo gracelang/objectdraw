@@ -49,7 +49,6 @@ def SubobjectResponsibility : ExceptionKind =
 
 def document : Foreign = dom.document
 
-type Action<R> = Block0<R>
 type Function<T, R> = Block1<T,R>
 type Function2<T, U, R> = Block2<T, U, R>
 type Procedure<T> = Block1<T,Done>
@@ -738,13 +737,13 @@ def input : ComponentFactory<Input> = object {
       })
     }
 
-    method onBlurDo(f : Action) -> Done {
+    method onBlurDo(f : Response) -> Done {
       element.addEventListener("blur", { _ ->
         f.apply(event.source(self))
       })
     }
 
-    method onChangeDo(f : Action) -> Done {
+    method onChangeDo(f : Response) -> Done {
       element.addEventListener("change", { _ ->
         f.apply(event.source(self))
       })
