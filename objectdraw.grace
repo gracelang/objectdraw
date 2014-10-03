@@ -212,7 +212,7 @@ type Graphic = {
 
 
 // DrawingCanvas holding graphic objects
-type DrawingCanvas = {
+type DrawingCanvas = Component & type {
 
   // Start drawing on the canvas. Will continue until the canvas is destroyed.
   startDrawing -> Done
@@ -254,26 +254,26 @@ type GraphicApplication = Application & type {
 
   // Respond to a mouse click (press and release) in the canvas at the given
   // point.
-  onMouseClick(mouse : Point)
+  onMouseClick(mouse : Point) -> Done
 
   // Respond to a mouse press in the canvas at the given point.
-  onMousePress(mouse : Point)
+  onMousePress(mouse : Point) -> Done
 
   // Respond to a mouse release in the canvas at the given point.
-  onMouseRelease(mouse : Point)
+  onMouseRelease(mouse : Point) -> Done
 
   // Respond to a mouse move in the canvas at the given point.
-  onMouseMove(mouse : Point)
+  onMouseMove(mouse : Point) -> Done
 
   // Respond to a mouse drag (move during press) in the canvas at the given
   // point.
-  onMouseDrag(mouse : Point)
+  onMouseDrag(mouse : Point) -> Done
 
   // Respond to a mouse entering the canvas at the given point.
-  onMouseEnter(mouse : Point)
+  onMouseEnter(mouse : Point) -> Done
 
   // Respond to a mouse exiting the canvas at the given point.
-  onMouseExit(mouse : Point)
+  onMouseExit(mouse : Point) -> Done
 
   // must be invoked to create window and its contents as well as prepare the
   // window to handle mouse events
@@ -331,7 +331,7 @@ type TextBox = Component & type {
 
 }
 
-type Labelled = Component & type {
+type Labeled = Component & type {
 
   // The label name.
   label -> String
@@ -339,9 +339,9 @@ type Labelled = Component & type {
 
 }
 
-type Button = Labelled
+type Button = Labeled
 
-type Input = Labelled & type {
+type Input = Labeled & type {
 
   // Respond to this input gaining focus with the given event.
   onFocusDo(f : Response) -> Done
@@ -762,8 +762,8 @@ def input : ComponentFactory<Input> = object {
   }
 }
 
-def labeled : ComponentFactory<Labelled> = object {
-  factory method fromElement(element') -> Labelled {
+def labeled : ComponentFactory<Labeled> = object {
+  factory method fromElement(element') -> Labeled {
     inherits input.fromElement(element')
 
     method labelElement -> Foreign is confidential {
@@ -780,12 +780,12 @@ def labeled : ComponentFactory<Labelled> = object {
     }
   }
 
-  factory method ofElementType(elementType : String) -> Labelled {
+  factory method ofElementType(elementType : String) -> Labeled {
     inherits fromElement(document.createElement(elementType))
   }
 
   factory method ofElementType(elementType : String)
-      labeled(label' : String) -> Labelled {
+      labeled(label' : String) -> Labeled {
     inherits ofElementType(elementType)
 
     self.label := label'
