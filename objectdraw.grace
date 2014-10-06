@@ -52,7 +52,6 @@ def document : Foreign = dom.document
 type Function<T, R> = Block1<T,R>
 type Function2<T, U, R> = Block2<T, U, R>
 type Procedure<T> = Block1<T,Done>
-type Procedure2<T, U> = Block2<T, U, Done>
 
 
 // ** Types ********************************************************************
@@ -119,7 +118,7 @@ type Container = Component & type {
   size -> Number
 
   // Retrieve the component at the given index.
-  //at(index : Number) -> Component
+  at(index : Number) -> Component
 
   // Put the given component at the given index.
   at(index : Number) put(component : Component) -> Done
@@ -131,7 +130,7 @@ type Container = Component & type {
   prepend(component : Component) -> Done
 
   // Perform an action for every component inside this container.
-  //do(f : Procedure<Component>) -> Done
+  do(f : Procedure<Component>) -> Done
 
   // Arrange the contents of this container along the horizontal axis.
   // Components which exceed the width of the container will wrap around.
@@ -618,6 +617,10 @@ def component : ComponentFactory<Component> = object {
         0
       }
     }
+
+    method asString -> String {
+      "a component"
+    }
   }
 
   factory method ofElementType(tagName : String) -> Component {
@@ -633,21 +636,23 @@ def container : ComponentFactory<Container> is public = object {
   factory method fromElement(element') -> Container {
     inherits component.fromElement(element')
 
+    def children = []
+
     method size -> Number {
-      element.childElementCount
+      children.size
     }
 
     method isEmpty -> Boolean {
       size == 0
     }
 
-    //method at(index : Number) -> Component {
-      //if ((index < 1) || (index > size)) then {
-        //collections.BoundsError.raiseForIndex(index)
-      //}
+    method at(index : Number) -> Component {
+      if ((index < 1) || (index > size)) then {
+        collections.BoundsError.raiseForIndex(index)
+      }
 
-      //component.fromElement(element.children.at(index - 1).component)
-    //}
+      children.at(index)
+    }
 
     method at(index : Number) put(aComponent : Component) -> Done {
       if ((index < 1) || (index > (size + 1))) then {
@@ -657,14 +662,19 @@ def container : ComponentFactory<Container> is public = object {
       if (index == (size + 1)) then {
         element.appendChild(aComponent.element)
       } else {
-        element.insertBefore(aComponent.element, element.at(index - 1))
+        element.insertBefore(aComponent.element, children.at(index).element)
       }
+
+      children.at(index) put(aComponent)
 
       done
     }
 
     method append(aComponent : Component) -> Done {
       element.appendChild(aComponent.element)
+
+      children.push(aComponent)
+
       done
     }
 
@@ -675,25 +685,27 @@ def container : ComponentFactory<Container> is public = object {
         element.insertBefore(aComponent.element, element.firstChild)
       }
 
+      children.unshift(aComponent)
+
       done
     }
 
-    //method do(f : Procedure<Component>) -> Done {
-      //for (element.children) do { child ->
-        //f.apply(child.component)
-      //}
-    //}
+    method do(f : Procedure<Component>) -> Done {
+      for (children) do { aComponent ->
+        f.apply(aComponent)
+      }
+    }
 
-    //method fold<T>(f : Function2<T, Component, T>)
-        //startingWith(initial : T) -> T {
-      //var value : T := initial
+    method fold<T>(f : Function2<T, Component, T>)
+        startingWith(initial : T) -> T {
+      var value : T := initial
 
-      //for (element.children) do { child ->
-        //value := f.apply(value, child)
-      //}
+      for (children) do { aComponent ->
+        value := f.apply(value, aComponent)
+      }
 
-      //value
-    //}
+      value
+    }
 
     method flex -> Done is confidential {
       element.style.display := "inline-flex"
@@ -709,6 +721,10 @@ def container : ComponentFactory<Container> is public = object {
     method arrangeVertical -> Done {
       flex
       element.style.flexDirection := "column"
+    }
+
+    method asString -> String {
+      "container: with {size} children"
     }
   }
 
@@ -748,6 +764,10 @@ def input : ComponentFactory<Input> = object {
         f.apply(event.source(self))
       })
     }
+
+    method asString -> String {
+      "an input"
+    }
   }
 
   factory method ofElementType(elementType : String) -> Input {
@@ -777,6 +797,10 @@ def labeled : ComponentFactory<Labeled> = object {
       labelElement.textContent := value
       done
     }
+
+    method asString -> String {
+      "an input labeled: {label}"
+    }
   }
 
   factory method ofElementType(elementType : String) -> Labeled {
@@ -801,6 +825,10 @@ class field.ofType(inputType : String) labeled(label' : String) -> Input {
   method label := (value : String) -> Done {
     self.element.placeholder := value
     done
+  }
+
+  method asString -> String {
+    "a field labeled: {label}"
   }
 
   label := label'
@@ -960,7 +988,7 @@ class application.title(initialTitle : String)
   }
 
   method asString -> String {
-    "Application with title \"{windowTitle.asString}\", width {width}, height {height}"
+    "application titled {windowTitle}"
   }
 }
 
@@ -1078,6 +1106,8 @@ class graphicApplication
 
   def canvas : DrawingCanvas is public = drawingCanvas.size(theWidth, theHeight)
 
+  children.push(canvas)
+
   def before : Container = container.empty
   def after : Container = container.empty
 
@@ -1086,12 +1116,14 @@ class graphicApplication
   element.appendChild(canvas.element)
   element.appendChild(after.element)
 
-  method prepend(com : Component) -> Done {
-    before.prepend(com)
+  method prepend(aComponent : Component) -> Done {
+    before.prepend(aComponent)
+    children.unshift(aComponent)
   }
 
-  method append(com : Component) -> Done {
-    after.append(com)
+  method append(aComponent : Component) -> Done {
+    after.append(aComponent)
+    children.push(aComponent)
   }
 
   method onMouseClick(mouse : Point) -> Done {}
@@ -1149,6 +1181,10 @@ class graphicApplication
     canvas.onMouseExitDo { event' ->
       onMouseExit(event'.at)
     }
+  }
+
+  method asString -> String {
+    "graphic application of {canvas}"
   }
 }
 
@@ -1731,11 +1767,19 @@ class textBox.with(contents' : String) -> TextBox {
     done
   }
 
+  method asString -> String {
+    "a text box"
+  }
+
   contents := contents'
 }
 
 class button.labeled(label' : String) -> Button {
   inherits labeled.ofElementType("button") labeled(label')
+
+  method asString -> String {
+    "a button labeled: {self.label}"
+  }
 }
 
 type FieldFactory = {
@@ -1755,6 +1799,14 @@ def textField : FieldFactory is public = object {
     method text := (value : String) -> Done {
       self.element.value := value
     }
+
+    method asString -> String {
+      if (self.label == "") then {
+        "a text field"
+      } else {
+        "a text field labeled: {self.label}"
+      }
+    }
   }
 
   factory method unlabeled -> TextField {
@@ -1771,6 +1823,14 @@ def passwordField : FieldFactory is public = object {
     inherits textField.labeled(label)
 
     self.element.setAttribute("type", "password")
+
+    method asString -> String {
+      if (self.label == "") then {
+        "a password field"
+      } else {
+        "a password field labeled: {self.label}"
+      }
+    }
   }
 
   factory method unlabeled -> TextField {
@@ -1792,6 +1852,14 @@ def numberField : FieldFactory is public = object {
 
     method number := (value : Number) -> Done {
       self.element.value := value
+    }
+
+    method asString -> String {
+      if (self.label == "") then {
+        "a number field"
+      } else {
+        "a number field labeled: {self.label}"
+      }
     }
   }
 
@@ -1836,6 +1904,14 @@ def selectBox : ChoiceFactory is public = object {
 
       method selected := (value : String) -> Done {
         self.element.value := value
+      }
+
+      method asString -> String {
+        if (self.label == "") then {
+          "a select box"
+        } else {
+          "a select box labeled: {self.label}"
+        }
       }
     }
   }
@@ -1911,6 +1987,10 @@ class audio.url(source' : String) -> Audio {
 
   method isEnded -> Boolean {
     element.ended
+  }
+
+  method asString -> String {
+    "audio from {source}"
   }
 }
 
