@@ -4,6 +4,9 @@ inherits StandardPrelude.methods
 import "dom" as dom
 import "math" as math
 
+def list is public = StandardPrelude.list
+type List<T> is public = StandardPrelude.List<T>
+
 
 // ** Re-exports and helpers ***************************************************
 
