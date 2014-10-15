@@ -4,9 +4,6 @@ inherits StandardPrelude.methods
 import "dom" as dom
 import "math" as math
 
-def list is public = StandardPrelude.list
-type List<T> is public = StandardPrelude.List<T>
-
 
 // ** Re-exports and helpers ***************************************************
 
@@ -26,7 +23,17 @@ method randomIntFrom(m : Number) to(n : Number) -> Number {
 // A rough approximation of the value of pi.
 def pi: Number is public = 3.14159
 
-type Point = StandardPrelude.Point
+method list -> CollectionFactory {
+  StandardPrelude.list
+}
+
+method List<T> -> Pattern {
+  StandardPrelude.List<T>
+}
+
+method Point -> Pattern {
+  StandardPrelude.Point
+}
 
 type Foreign = Unknown
 
