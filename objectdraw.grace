@@ -5,7 +5,7 @@ import "dom" as dom
 import "math" as math
 
 
-// ** Re-exports and helpers ***************************************************
+// ** Helpers ******************************************************************
 
 // The frame rate of the drawing.
 def frameRate : Number = 30
@@ -22,18 +22,6 @@ method randomIntFrom(m : Number) to(n : Number) -> Number {
 
 // A rough approximation of the value of pi.
 def pi: Number is public = 3.14159
-
-method list -> CollectionFactory {
-  StandardPrelude.list
-}
-
-method List<T> -> Pattern {
-  StandardPrelude.List<T>
-}
-
-method Point -> Pattern {
-  StandardPrelude.Point
-}
 
 type Foreign = Unknown
 
@@ -53,9 +41,6 @@ type ExceptionKind = Pattern & type {
   refine(name : String) -> ExceptionKind
   parent -> ExceptionKind
 }
-
-def SubobjectResponsibility : ExceptionKind =
-  ProgrammingError.refine "Subobject Responsibility"
 
 def document : Foreign = dom.document
 
