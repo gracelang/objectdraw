@@ -387,8 +387,8 @@ type Color = {
 
 }
 
-def ColorOutOfRange : ExceptionKind =
-  StandardPrelude.RuntimeError.refine "Color Out Of Range"
+def ColorOutOfRange : ExceptionKind is public =
+  RuntimeError.refine "Color Out Of Range"
 
 // Simple color class
 class color.r(r' : Number) g(g' : Number) b(b' : Number) -> Color {
