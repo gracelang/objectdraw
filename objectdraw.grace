@@ -832,6 +832,12 @@ class field.ofType(inputType : String) labeled(label' : String) -> Input {
 
 // ** External factories *******************************************************
 
+class eventLog.kind(kind' : String)
+    response(response' : Procedure) is confidential {
+  def kind : String is public = kind'
+  def response : Procedure is public = response'
+}
+
 class application.title(initialTitle : String)
     size(initialWidth : Number, initialHeight : Number) -> Application {
   inherits container.fromElement(document.createDocumentFragment)
@@ -869,12 +875,6 @@ class application.title(initialTitle : String)
     } else {
       isHorizontal := false
     }
-  }
-
-  class eventLog.kind(kind' : String)
-      response(response' : Procedure) is confidential {
-    def kind : String is public = kind'
-    def response : Procedure is public = response'
   }
 
   method on(kind : String)
