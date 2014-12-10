@@ -1921,8 +1921,8 @@ def selectBox : ChoiceFactory is public = object {
     self.element.removeChild(self.labelElement)
   }
 
-  factory method options(*options : String) -> Choice {
-    inherits optionsFrom(options)
+  factory method options(*optStrings : String) -> Choice {
+    inherits optionsFrom(optStrings)
   }
 }
 
