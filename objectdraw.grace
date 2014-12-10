@@ -1136,13 +1136,13 @@ class graphicApplication
   method onMouseExit(mouse : Point) -> Done {}
 
   method startGraphics -> Done {
-    def parent = document.createElement("div")
-    parent.className := "height-calculator"
-    parent.style.width := "{theWidth}px"
-    parent.appendChild(element.cloneNode(true))
-    document.body.appendChild(parent)
-    theHeight := parent.offsetHeight
-    document.body.removeChild(parent)
+    def parentElement = document.createElement("div")
+    parentElement.className := "height-calculator"
+    parentElement.style.width := "{theWidth}px"
+    parentElement.appendChild(element.cloneNode(true))
+    document.body.appendChild(parentElement)
+    theHeight := parentElement.offsetHeight
+    document.body.removeChild(parentElement)
 
     startApplication
     canvas.startDrawing
