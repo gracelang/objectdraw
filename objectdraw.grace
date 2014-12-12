@@ -776,7 +776,7 @@ def input : ComponentFactory<Input> = object {
   }
 }
 
-def labeled : ComponentFactory<Labeled> = object {
+def labeledWidget : ComponentFactory<Labeled> = object {
   factory method fromElement(element') -> Labeled {
     inherits input.fromElement(element')
 
@@ -1770,7 +1770,7 @@ class textBox.with(contents' : String) -> TextBox {
 }
 
 class button.labeled(label' : String) -> Button {
-  inherits labeled.ofElementType("button") labeled(label')
+  inherits labeledWidget.ofElementType("button") labeled(label')
 
   method asString -> String {
     "a button labeled: {self.label}"
@@ -1878,7 +1878,7 @@ def selectBox : ChoiceFactory is public = object {
     labeler.value := ""
 
     object {
-      inherits labeled.ofElementType("select") labeled(label')
+      inherits labeledWidget.ofElementType("select") labeled(label')
 
       method labelElement -> Foreign {
         labeler
