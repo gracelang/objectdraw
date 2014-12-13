@@ -1325,7 +1325,7 @@ class drawable2D.at(location':Point)size(width':Number,height':Number)on(canvas'
          &&(y <= locn.y) && (locn.y <= (y + height))
   }
 
-  method overlaps(other:Graphic2DFS)->Boolean{
+  method overlaps(other:Graphic2D)->Boolean{
     def itemleft = other.x
     def itemright = other.x + other.width
     def itemtop = other.y
