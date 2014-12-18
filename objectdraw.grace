@@ -1814,8 +1814,8 @@ def textField : FieldFactory is public = object {
 }
 
 def passwordField : FieldFactory is public = object {
-  factory method labeled(label : String) -> Input {
-    inherits textField.labeled(label)
+  factory method labeled(lab : String) -> Input {
+    inherits textField.labeled(lab)
 
     self.element.setAttribute("type", "password")
 
