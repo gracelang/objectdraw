@@ -387,8 +387,8 @@ type Color = {
 
 }
 
-def ColorOutOfRange : ExceptionKind =
-  StandardPrelude.RuntimeError.refine "Color Out Of Range"
+def ColorOutOfRange : ExceptionKind is public =
+  RuntimeError.refine "Color Out Of Range"
 
 // Simple color class
 class color.r(r' : Number) g(g' : Number) b(b' : Number) -> Color {
@@ -776,7 +776,7 @@ def input : ComponentFactory<Input> = object {
   }
 }
 
-def labeled : ComponentFactory<Labeled> = object {
+def labeledWidget : ComponentFactory<Labeled> = object {
   factory method fromElement(element') -> Labeled {
     inherits input.fromElement(element')
 
@@ -832,6 +832,12 @@ class field.ofType(inputType : String) labeled(label' : String) -> Input {
 
 // ** External factories *******************************************************
 
+class eventLog.kind(kind' : String)
+    response(response' : Procedure) is confidential {
+  def kind : String is public = kind'
+  def response : Procedure is public = response'
+}
+
 class application.title(initialTitle : String)
     size(initialWidth : Number, initialHeight : Number) -> Application {
   inherits container.fromElement(document.createDocumentFragment)
@@ -869,12 +875,6 @@ class application.title(initialTitle : String)
     } else {
       isHorizontal := false
     }
-  }
-
-  class eventLog.kind(kind' : String)
-      response(response' : Procedure) is confidential {
-    def kind : String is public = kind'
-    def response : Procedure is public = response'
   }
 
   method on(kind : String)
@@ -1136,13 +1136,13 @@ class graphicApplication
   method onMouseExit(mouse : Point) -> Done {}
 
   method startGraphics -> Done {
-    def parent = document.createElement("div")
-    parent.className := "height-calculator"
-    parent.style.width := "{theWidth}px"
-    parent.appendChild(element.cloneNode(true))
-    document.body.appendChild(parent)
-    theHeight := parent.offsetHeight
-    document.body.removeChild(parent)
+    def parentElement = document.createElement("div")
+    parentElement.className := "height-calculator"
+    parentElement.style.width := "{theWidth}px"
+    parentElement.appendChild(element.cloneNode(true))
+    document.body.appendChild(parentElement)
+    theHeight := parentElement.offsetHeight
+    document.body.removeChild(parentElement)
 
     startApplication
     canvas.startDrawing
@@ -1325,7 +1325,7 @@ class drawable2D.at(location':Point)size(width':Number,height':Number)on(canvas'
          &&(y <= locn.y) && (locn.y <= (y + height))
   }
 
-  method overlaps(other:Graphic2DFS)->Boolean{
+  method overlaps(other:Graphic2D)->Boolean{
     def itemleft = other.x
     def itemright = other.x + other.width
     def itemtop = other.y
@@ -1770,7 +1770,7 @@ class textBox.with(contents' : String) -> TextBox {
 }
 
 class button.labeled(label' : String) -> Button {
-  inherits labeled.ofElementType("button") labeled(label')
+  inherits labeledWidget.ofElementType("button") labeled(label')
 
   method asString -> String {
     "a button labeled: {self.label}"
@@ -1814,8 +1814,8 @@ def textField : FieldFactory is public = object {
 }
 
 def passwordField : FieldFactory is public = object {
-  factory method labeled(label : String) -> Input {
-    inherits textField.labeled(label)
+  factory method labeled(lab : String) -> Input {
+    inherits textField.labeled(lab)
 
     self.element.setAttribute("type", "password")
 
@@ -1878,7 +1878,7 @@ def selectBox : ChoiceFactory is public = object {
     labeler.value := ""
 
     object {
-      inherits labeled.ofElementType("select") labeled(label')
+      inherits labeledWidget.ofElementType("select") labeled(label')
 
       method labelElement -> Foreign {
         labeler
@@ -1921,8 +1921,8 @@ def selectBox : ChoiceFactory is public = object {
     self.element.removeChild(self.labelElement)
   }
 
-  factory method options(*options : String) -> Choice {
-    inherits optionsFrom(options)
+  factory method options(*optStrings : String) -> Choice {
+    inherits optionsFrom(optStrings)
   }
 }
 
