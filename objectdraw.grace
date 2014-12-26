@@ -1,7 +1,6 @@
-import "StandardPrelude" as StandardPrelude
-inherits StandardPrelude.methods
+inherits prelude.methods
 
-import "dom" as dom
+import "js/dom" as dom
 import "math" as math
 
 
@@ -30,13 +29,7 @@ type MatchResult = {
   bindings -> List<Object>
 }
 
-type Pattern = {
-  &(and : Pattern) -> Pattern
-  |(or : Pattern) -> Pattern
-  match(value : Object) -> MatchResult
-}
-
-type ExceptionKind = Pattern & type {
+type ExceptionKind = prelude.Pattern & type {
   raise(message : String) -> Done
   refine(name : String) -> ExceptionKind
   parent -> ExceptionKind
@@ -44,9 +37,9 @@ type ExceptionKind = Pattern & type {
 
 def document : Foreign = dom.document
 
-type Function<T, R> = Block1<T,R>
-type Function2<T, U, R> = Block2<T, U, R>
-type Procedure<T> = Block1<T,Done>
+type Function<T, R> = prelude.Block1<T,R>
+type Function2<T, U, R> = prelude.Block2<T, U, R>
+type Procedure<T> = prelude.Block1<T,Done>
 
 
 // ** Types ********************************************************************
