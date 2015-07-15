@@ -1688,11 +1688,8 @@ def line = object {
       length(len: Number)
       direction(radians: Number)
       on(canvas':DrawingCanvas) -> Line {
-    def endpt: Point = pt+((len*math.cos(radians)) @ (-len*math.sin(radians)))
-
-    object {
-      inherits line.from(pt) to (endpt) on (canvas')
-    }
+    def endpt = pt + ((len*math.cos(radians))@(-len*math.sin(radians)))
+    line.from(pt) to (endpt) on (canvas')
   }
 }
 
