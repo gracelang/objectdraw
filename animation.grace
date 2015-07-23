@@ -68,7 +68,7 @@ method while(condition:BoolBlock) pauseVarying (timeBlock) do (block:Block)  -> 
 // block should take a numeric value as a parameter
 method for<T>(rangeList:List<T>) pausing (pauseTime: Number) do (block:Block<Number,Done>)-> Done {
   def it = rangeList.iterator
-  while{it.havemore} pausing (pauseTime) do {block.apply(it.next)}
+  while{it.hasNext} pausing (pauseTime) do {block.apply(it.next)}
 }
 
 // Repeatedly execute block for each value in rangeList, pausing pauseTime between iterations.
@@ -77,6 +77,6 @@ method for<T>(rangeList:List<T>) pausing (pauseTime: Number) do (block:Block<Num
 method for<T> (rangeList:List<T>) pausing (pauseTime) do(block:Block<Number,Done>)
              finally(endBlock:Block) -> Done {
   def it:Iterator<T> = rangeList.iterator
-  while{it.havemore} pausing (pauseTime) do {block.apply(it.next)}
+  while{it.hasNext} pausing (pauseTime) do {block.apply(it.next)}
          finally(endBlock)
 }
