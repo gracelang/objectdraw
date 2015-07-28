@@ -20,27 +20,15 @@ method randomIntFrom(m : Number) to(n : Number) -> Number {
 }
 
 // A rough approximation of the value of pi.
-def pi: Number is public = 3.14159
+def pi: Number is public = math.π
 
 type Foreign = Unknown
-
-type MatchResult = {
-  result -> Object
-  bindings -> List<Object>
-}
-
-type ExceptionKind = prelude.Pattern & type {
-  raise(message : String) -> Done
-  refine(name : String) -> ExceptionKind
-  parent -> ExceptionKind
-}
 
 def document : Foreign = dom.document
 
 type Function<T, R> = prelude.Block1<T,R>
 type Function2<T, U, R> = prelude.Block2<T, U, R>
 type Procedure<T> = prelude.Block1<T,Done>
-
 
 // ** Types ********************************************************************
 
