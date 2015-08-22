@@ -20,21 +20,21 @@ type Animator = {
    while(condition:BoolBlock) pauseVarying (timeBlock: NumberBlock) do (block:Block) -> Done
 
    // Repeatedly execute block while condition is true
-   for<T> (rangeList:List<T>) pausing (pauseTime) do (block:Block<T,Done>) -> Done
+   for<T> (range':Sequence<T>) pausing (pauseTime) do (block:Block<T,Done>) -> Done 
  
    // Repeatedly execute block while condition is true
    // when condition fails, execute endBlock.
-   for<T> (rangeList:List<T>) pausing (pauseTime) do (block:Block<T,Done>) finally (endBlock:Block) -> Done
+   for<T> (range':Sequence<T>) pausing (pauseTime) do (block:Block<T,Done>) finally (endBlock:Block) -> Done
 
 }
 
 // Repeatedly execute block while condition is true
 method while(condition:BoolBlock) pausing (pauseTime:Number) do (block:Block) -> Done {
-  def id:Number = timer.every(pauseTime)do{
-     if(condition.apply) then {
+  def id: Number = timer.every (pauseTime) do {
+     if (condition.apply) then {
         block.apply
      } else {
-        timer.stop(id)
+        timer.stop (id)
      }
   }
 }
@@ -64,19 +64,19 @@ method while(condition:BoolBlock) pauseVarying (timeBlock) do (block:Block)  -> 
   }
 }
 
-// Repeatedly execute block for each value in rangeList, pausing pauseTime between iterations.
+// Repeatedly execute block for each value in range, pausing pauseTime between iterations.
 // block should take a numeric value as a parameter
-method for<T>(rangeList:List<T>) pausing (pauseTime: Number) do (block:Block<Number,Done>)-> Done {
-  def it = rangeList.iterator
+method for<T>(range':Sequence<T>) pausing (pauseTime: Number) do (block:Block<Number,Done>)-> Done {
+  def it = range'.iterator
   while{it.hasNext} pausing (pauseTime) do {block.apply(it.next)}
 }
 
-// Repeatedly execute block for each value in rangeList, pausing pauseTime between iterations.
+// Repeatedly execute block for each value in range, pausing pauseTime between iterations.
 // block should take a numeric value as a parameter
 // when condition fails, execute endBlock.
-method for<T> (rangeList:List<T>) pausing (pauseTime) do(block:Block<Number,Done>)
+method for<T> (range':Sequence<T>) pausing (pauseTime) do(block:Block<Number,Done>)
              finally(endBlock:Block) -> Done {
-  def it:Iterator<T> = rangeList.iterator
+  def it:Iterator<T> = range'.iterator
   while{it.hasNext} pausing (pauseTime) do {block.apply(it.next)}
          finally(endBlock)
 }
