@@ -1,3 +1,4 @@
+#pragma PrimitiveLists
 inherits prelude.methods
 
 import "js/dom" as dom
