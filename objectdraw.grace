@@ -1,4 +1,5 @@
 #pragma PrimitiveLists
+#pragma noTypeChecks
 inherits prelude.methods
 
 import "js/dom" as dom
