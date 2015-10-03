@@ -416,6 +416,10 @@ class color.r (r': Number) g (g': Number) b (b': Number) -> Color {
   def green:Number is public = g'.truncate
   def blue:Number is public = b'.truncate
 
+  method ==(c: Color) -> Boolean {
+     (red == c.red) && (green == c.green) && (blue == c.blue)
+  }
+  
   method asString -> String {
     "color w/ rgb({red}, {green}, {blue})"
   } 
@@ -1818,6 +1822,16 @@ def line: LineFactory is public = object {
       theEnd:= theEnd + (dx @ dy) //.translate(dx,dy)
       notifyRedraw
     }
+
+    // move this object to newLocn
+    method moveTo (newLocn: Point) -> Done{
+      def dx: Number = (newLocn - location).x
+      def dy: Number = (newLocn - location).y
+      location := newLocn
+      theEnd := theEnd + (dx @ dy)
+      notifyRedraw
+    }
+
 
     // return the square of the distance between v and w
     method dist2 (v: Point, w: Point) -> Number is confidential {
