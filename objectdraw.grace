@@ -600,7 +600,7 @@ def component: ComponentFactory<Component> = object {
       on "mouseover" do { event' ->
         def from = event'.relatedTarget
 
-        if ((from == done).orElse {!element.contains(from)}) then {
+        if ((from == dom.noObject).orElse {!element.contains(from)}) then {
           f.apply (mouseEvent.source (self) event (event'))
         }
       }
@@ -611,7 +611,7 @@ def component: ComponentFactory<Component> = object {
       on "mouseout" do {event' ->
         def to = event'.relatedTarget
 
-        if ((to == done).orElse {!element.contains (to)}) then {
+        if ((to == dom.noObject).orElse {!element.contains (to)}) then {
           f.apply (mouseEvent.source (self) event (event'))
         }
       }
@@ -1022,7 +1022,7 @@ class application.title(initialTitle: String)
     on "mouseover" do { event' ->
       def from = event'.relatedTarget
 
-      if (from == done) then {
+      if (from == dom.noObject) then {
         f.apply(mouseEvent.source(self) event(event'))
       }
     }
@@ -1033,7 +1033,7 @@ class application.title(initialTitle: String)
     on "mouseout" do { event' ->
       def to = event'.relatedTarget
 
-      if (to == done) then {
+      if (to == dom.noObject) then {
         f.apply(mouseEvent.source(self) event(event'))
       }
     }
