@@ -2,7 +2,7 @@
 #pragma noTypeChecks
 inherits prelude.methods
 
-import "js/dom" as dom
+import "dom" as dom
 import "math" as math
 
 
