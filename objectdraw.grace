@@ -2169,12 +2169,6 @@ type ChoiceFactory = {
     optionsFrom (options: Iterable<String>) -> Choice
     // Creates choice box with items from options;
     // initially shows first item in options
-
-    options(*options: String) labeled(label: String) -> Choice
-    // Creates choice item initialized with options initially showing label
-
-    options(*options: String) -> Choice
-    // Creates choice item initialized with options initially showing first item
 }
 
 def selectBox: ChoiceFactory is public = object {
@@ -2224,24 +2218,12 @@ def selectBox: ChoiceFactory is public = object {
         }
     }
 
-    method options (*options: String) labeled (label': String) -> Choice {
-        // Creates choice box with items from options
-        // When created shows label'
-        optionsFrom (options) labeled (label')
-    }
-
     method optionsFrom (options: Sequence<String>) -> Choice {
         // Creates choice box with list of items from options
         // Initially shows first item in options
         def result = optionsFrom (options) labeled ""
         result.element.removeChild (result.labelElement)
         result
-    }
-
-    method options(*optStrings: String) -> Choice {
-        // Creates choice box with items from options
-        // Initially shows first item in options
-        optionsFrom(optStrings)
     }
 }
 
