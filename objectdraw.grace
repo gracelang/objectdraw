@@ -1,4 +1,4 @@
-#pragma PrimitiveLists
+#pragma ExtendedLineups
 #pragma noTypeChecks
 inherits _prelude.methods
 
