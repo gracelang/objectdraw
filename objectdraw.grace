@@ -406,9 +406,9 @@ def color is public = object {
             ColorOutOfRange.raise "blue index {b'} out of bounds 0..255"
         }
 
-        def red:Number is public = r'.truncate
-        def green:Number is public = g'.truncate
-        def blue:Number is public = b'.truncate
+        def red:Number is public = r'.truncated
+        def green:Number is public = g'.truncated
+        def blue:Number is public = b'.truncated
 
         method == (c: Color) -> Boolean {
              (red == c.red) && (green == c.green) && (blue == c.blue)
@@ -628,7 +628,7 @@ def component: ComponentFactory<Component> = object {
             on "mouseover" do { event' ->
                 def from = event'.relatedTarget
 
-                if ((from == dom.noObject).orElse {!element.contains(from)}) then {
+                if ((from == dom.noObject) || {!element.contains(from)}) then {
                     f.apply (mouseEvent.source (self) event (event'))
                 }
             }
