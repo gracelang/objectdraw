@@ -639,7 +639,7 @@ def component: ComponentFactory<Component> = object {
             on "mouseout" do {event' ->
                 def to = event'.relatedTarget
 
-                if ((to == dom.noObject).orElse {!element.contains (to)}) then {
+                if ((to == dom.noObject) || {!element.contains (to)}) then {
                     f.apply (mouseEvent.source (self) event (event'))
                 }
             }
