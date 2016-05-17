@@ -628,7 +628,7 @@ def component: ComponentFactory<Component> = object {
             on "mouseover" do { event' ->
                 def from = event'.relatedTarget
 
-                if ((from == dom.noObject) || {!element.contains(from)}) then {
+                if ((dom.noObject == from) || {!element.contains(from)}) then {
                     f.apply (mouseEvent.source (self) event (event'))
                 }
             }
@@ -639,7 +639,7 @@ def component: ComponentFactory<Component> = object {
             on "mouseout" do {event' ->
                 def to = event'.relatedTarget
 
-                if ((to == dom.noObject) || {!element.contains (to)}) then {
+                if ((dom.noObject == to) || {!element.contains (to)}) then {
                     f.apply (mouseEvent.source (self) event (event'))
                 }
             }
@@ -1060,7 +1060,7 @@ def application is public = object {
             on "mouseover" do { event' ->
                 def from = event'.relatedTarget
 
-                if (from == dom.noObject) then {
+                if (dom.noObject == from) then {
                     f.apply(mouseEvent.source(self) event(event'))
                 }
             }
@@ -1071,7 +1071,7 @@ def application is public = object {
             on "mouseout" do { event' ->
                 def to = event'.relatedTarget
 
-                if (to == dom.noObject) then {
+                if (dom.noObject == to) then {
                     f.apply(mouseEvent.source(self) event(event'))
                 }
             }
@@ -1340,7 +1340,7 @@ def graphicApplication is public = object {
         method asString -> String {
             "graphic application of {canvas}"
         }
-        }
+    }
 }
 
 def drawable is public = object {
@@ -1358,6 +1358,12 @@ def drawable is public = object {
         // y coordinate of object
         method y -> Number {
             location.y
+        }
+
+        method == (other) {
+            // Object identity.
+            // This doesn't seem right to apb, but it's what the rest of the code assumes.
+            isMe(other)
         }
 
         // The canvas this object is part of
