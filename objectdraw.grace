@@ -1363,7 +1363,7 @@ def drawable is public = object {
         method == (other) {
             // Object identity.
             // This doesn't seem right to apb, but it's what the rest of the code assumes.
-            isMe(other)
+            self.isMe(other)
         }
 
         // The canvas this object is part of
