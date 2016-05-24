@@ -911,12 +911,11 @@ def labeledWidget:ComponentFactory<Labeled> = object {
         fromElement (document.createElement (elementType))
     }
 
-    method ofElementType (elementType: String)
-          labeled(label: String) -> Labeled {
-        // Create labeled element from elementType with label
-        def result = ofElementType(elementType)
-        result.label := label
-        result
+    class ofElementType (elementType: String)
+          labeled(newLabel: String) -> Labeled {
+        // Create labeled element from elementType with newLabel
+        inherits ofElementType(elementType)
+        self.label := newLabel
     }
 }
 
