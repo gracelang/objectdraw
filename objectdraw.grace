@@ -905,15 +905,16 @@ def labeledWidget:ComponentFactory<Labeled> = object {
         }
     }
 
-    method ofElementType (elementType:String) -> Labeled {
+    class ofElementType (elementType:String) -> Labeled {
         // creates labeled input a new document of elementType
 
-        fromElement (document.createElement (elementType))
+        inherits fromElement (document.createElement (elementType))
     }
 
     class ofElementType (elementType: String)
           labeled(newLabel: String) -> Labeled {
         // Create labeled element from elementType with newLabel
+
         inherits ofElementType(elementType)
         self.label := newLabel
     }
