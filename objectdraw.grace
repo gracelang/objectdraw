@@ -1,4 +1,5 @@
-inherits _prelude.methods
+#pragma ExtendedLineups
+inherit _prelude.methods
 
 import "dom" as dom
 import "math" as math
@@ -50,6 +51,9 @@ type Component = {
 
     // The height of this component.
     height -> Number
+    
+    // The size (width, height) of this component
+    dimensions -> Point
 
     // Respond to a mouse click (press and release) in this component with the
     // given event.
@@ -274,9 +278,10 @@ type Graphic2D = Graphic & type {
     // dimensions of object
     width -> Number
     height -> Number
+    dimensions -> Point
 
     // Change dimensions of object
-    setSize (width: Number, height: Number) -> Done
+    dimensions := (dimensions: Point) -> Done
     width := (width: Number) -> Done
     height := (height: Number) -> Done
 }
@@ -492,7 +497,7 @@ class eventSource (source':Component) -> Event {
 class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent {
         // Creates a mouseEvent with the mouse location from event'
 
-        inherits eventSource (source')
+        inherit eventSource (source')
         def at: Point is public = (event'.pageX - source.element.offsetLeft) @
             (event'.pageY - source.element.offsetTop)
 
@@ -504,7 +509,7 @@ class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent 
 
 class keyEventSource (source':Component) event(event':Foreign) -> KeyEvent {
         // Creates an event with the key-code from event'
-        inherits eventSource(source')
+        inherit eventSource(source')
         def code: Number is public = event'.which
         //def character is public = dom.window.String.fromCharCode(event'.which)
 
@@ -534,10 +539,7 @@ def maxClickTime: Number = 200
 // down in order for the event to be registered as a click.
 
 
-def component: ComponentFactory<Component> = object {
-    // Factory object for components that respond to mouse actions
-
-    class fromElement (element') -> Component {
+class componentFromElement (element') -> Component {
         def element is public = element'
 
         // width of component
@@ -548,6 +550,11 @@ def component: ComponentFactory<Component> = object {
         // height of component
         method height -> Number {
             element.height
+        }
+        
+        // dimensions of component
+        method dimensions -> Point {
+            element.width @ element.height
         }
 
         // assocate action f with event' on component
@@ -564,6 +571,15 @@ def component: ComponentFactory<Component> = object {
                 f.apply (mouseEventSource (self) event (event'))
             }
         }
+        
+        // debug: This is declared outside and should be visible, but its not!!
+        class mouseEventSource(source')event(event') is confidential {
+            def source is public = source'
+            def at is public  = (event'.pageX - source.element.offsetLeft) @
+                    (event'.pageY - source.element.offsetTop)
+            method asString {"Mouse event on {source} at {at}"}
+        }
+
 
         method onMouseClickDo (f:MouseResponse) -> Done {
             // Associates action f with mouse click event
@@ -620,8 +636,17 @@ def component: ComponentFactory<Component> = object {
         method onMouseEnterDo (f: MouseResponse) -> Done {
             on "mouseover" do { event' ->
                 def from = event'.relatedTarget
-
+//                print("dom = {dom}")
+//                print("dom.noObject = {dom.noObject}")
+//                print("from = {from}")
+//                print("element = {element}")
+//                print("self ={self}")
+//                print("event' = {event'}")
+//                print("dom.noObject == from = {dom.noObject == from}")
+//                print("!element.contains(from) = {!element.contains(from)}")
                 if ((dom.noObject == from) || {!element.contains(from)}) then {
+//                    print("in if")
+//                    print("mouseEventSource (self) event (event') = {outer.mouseEventSource (self) event (event')}")
                     f.apply (mouseEventSource (self) event (event'))
                 }
             }
@@ -679,27 +704,23 @@ def component: ComponentFactory<Component> = object {
         method asString -> String {
             "a component"
         }
-    }
+}
 
-    class ofElementType (tagName:String) -> Component {
+class componentOfElementType (tagName:String) -> Component {
         // Creates a component with type tagName
 
-        inherits fromElement (document.createElement (tagName))
-    }
+        inherit componentFromElement (document.createElement (tagName))
+
 }
 
 
-def container: ComponentFactory<Container> is public = object {
-    // A factory object for containers
-
-    // Create a new Component with name tagName
-    class ofElementType (tagName: String) -> Component {
-        inherits fromElement (document.createElement (tagName))
-    }
+class containerOfElementType (tagName: String) -> Component {
+        inherit containerFromElement (document.createElement (tagName))
+}
 
     // Create a new Component from element'
-    class fromElement (element') -> Container {
-        inherits component.fromElement (element')
+class containerFromElement (element') -> Container {
+        inherit componentFromElement (element')
 
         def children = []
 
@@ -804,30 +825,28 @@ def container: ComponentFactory<Container> is public = object {
         method asString -> String {
             "container: with {size} children"
         }
-    }
+}
 
     // Create an empty container ready to add in row
-    class empty -> Container {
-        inherits ofElementType ("div")
+class containerEmpty -> Container {
+        inherit containerOfElementType ("div")
 
         self.arrangeHorizontal
-    }
+}
 
     // Set empty container with given width' and height'
-    class size (width': Number, height': Number) -> Container {
-        inherits empty
+class containerSize (width': Number, height': Number) -> Container {
+        inherit containerEmpty
 
         self.element.style.width:= "{width'}px"
         self.element.style.height:= "{height'}px"
         self.element.style.overflow:= "auto"
-    }
+
 }
 
 // A factory building components that take input
-def input: ComponentFactory<Input> = object {
-
-    class fromElement (element') -> Input {
-        inherits component.fromElement(element')
+class inputFromElement (element') -> Input {
+        inherit componentFromElement(element')
 
         // Respond with action f to this input gaining focus with the given event.
         method onFocusDo (f: Response) -> Done {
@@ -854,28 +873,25 @@ def input: ComponentFactory<Input> = object {
         method asString -> String {
             "an input"
         }
-    }
-
-    // Create component of type elementType to handle input
-    class ofElementType(elementType: String) -> Input {
-        inherits fromElement (document.createElement (elementType))
-    }
-
-    // Create component of type inputType to handle input
-    class ofType (inputType: String) -> Input {
-        inherits ofElementType("input")
-
-        self.element.setAttribute ("type", inputType)
-    }
 }
 
-def labeledWidget:ComponentFactory<Labeled> = object {
-    // Factory object for create labeled components
+    // Create component of type elementType to handle input
+class inputOfElementType(elementType: String) -> Input {
+        inherit inputFromElement (document.createElement (elementType))
+}
 
-    class fromElement (element') -> Labeled {
+    // Create component of type inputType to handle input
+class inputOfType (inputType: String) -> Input {
+        inherit inputOfElementType("input")
+
+        self.element.setAttribute ("type", inputType)
+
+}
+
+class labeledWidgetFromElement (element') -> Labeled {
         // create labeled input from element'
 
-        inherits input.fromElement (element')
+        inherit inputFromElement (element')
 
         method labelElement -> Foreign is confidential {
             self.element
@@ -896,28 +912,27 @@ def labeledWidget:ComponentFactory<Labeled> = object {
             // a human-readable description of this object
             "an input labeled: {label}"
         }
-    }
+}
 
-    class ofElementType (elementType:String) -> Labeled {
+class labeledWidgetOfElementType (elementType:String) -> Labeled {
         // creates labeled input a new document of elementType
 
-        inherits fromElement (document.createElement (elementType))
-    }
+        inherit labeledWidgetFromElement (document.createElement (elementType))
+}
 
-    class ofElementType (elementType: String)
+class labeledWidgetOfElementType (elementType: String)
           labeled(newLabel: String) -> Labeled {
         // Create labeled element from elementType with newLabel
 
-        inherits ofElementType(elementType)
+        inherit labeledWidgetOfElementType(elementType)
         self.label := newLabel
-    }
+
 }
 
-def field is public = object {
-    class ofType(inputType: String) labeled(label': String) -> Input {
+class fieldOfType(inputType: String) labeled(label': String) -> Input {
         // Create input field of type inputType showing label'
 
-        inherits input.ofType(inputType)
+        inherit inputOfType(inputType)
 
         // label on the field
         method label -> String {
@@ -936,7 +951,7 @@ def field is public = object {
         }
 
         label:= label'
-    }
+
 }
 
 
@@ -950,18 +965,18 @@ class eventLogKind(kind': String)
 }
 
 class applicationTitle(initialTitle: String)
-          size(initialWidth: Number, initialHeight: Number) -> Application {
+          dimensions(dimensions': Point) -> Application {
         // Create an application with window titled initialTitle and
-        // size initialWidth x initialHeight
+        // size dimensions'
 
-        inherits container.fromElement(document.createDocumentFragment)
+        inherit containerFromElement(document.createDocumentFragment)
 
         var isOpened: Boolean:= false  // whether window is visible
         var theWindow: Foreign
 
         var theTitle: String:= initialTitle
-        var theWidth: Number:= initialWidth
-        var theHeight: Number:= initialHeight
+        var theWidth: Number:= dimensions'.x
+        var theHeight: Number:= dimensions'.y
 
         def events = []
 
@@ -1057,7 +1072,7 @@ class applicationTitle(initialTitle: String)
                 }
             }
         }
-
+        
         // Respond to a mouse exiting this window with the response f.
         method onMouseExitDo(f: MouseResponse) -> Done {
             on "mouseout" do { event' ->
@@ -1117,14 +1132,14 @@ class applicationTitle(initialTitle: String)
         }
 }
 
-class drawingCanvasSize(width': Number, height': Number) -> DrawingCanvas {
+class drawingCanvasDimensions(dimensions': Point) -> DrawingCanvas {
         // class representing a window panel that manages graphics on screen
         // The window containing the canvas has dimensions width' x height'
 
-        inherits component.fromElement(document.createElement("canvas"))
+        inherit componentFromElement(document.createElement("canvas"))
 
-        element.width:= width'
-        element.height:= height'
+        element.width:= dimensions'.x
+        element.height:= dimensions'.y
         element.style.alignSelf:= "center"
 
         def theContext: Foreign = element.getContext("2d")
@@ -1139,9 +1154,11 @@ class drawingCanvasSize(width': Number, height': Number) -> DrawingCanvas {
         method height -> Number {
             element.height
         }
+        
+        method dimensions -> Point {element.width @ element.height}
 
         // list of all objects on canvas (hidden or not)
-        var theGraphics:= []
+        var theGraphics:= [ ] // emptyList
 
         var redraw: Boolean:= false
 
@@ -1173,8 +1190,10 @@ class drawingCanvasSize(width': Number, height': Number) -> DrawingCanvas {
 
         // remove aGraphic from items on canvas
         method remove (aGraphic: Graphic) -> Done {
-            theGraphics.remove (aGraphic)
-            notifyRedraw
+            if (theGraphics.contains(aGraphic)) then {
+                theGraphics.remove (aGraphic)
+                notifyRedraw
+            }
         }
 
         // send item d to front/top layer of canvas
@@ -1226,18 +1245,18 @@ class drawingCanvasSize(width': Number, height': Number) -> DrawingCanvas {
         }
 }
 
-class graphicApplicationSize (theWidth':Number, theHeight':Number) -> GraphicApplication {
-        // Create window with dimensions theWidth' x theHeight, with canvas
+class graphicApplicationDimensions (theDimension':Point) -> GraphicApplication {
+        // Create window with dimensions theDimension', with canvas
         // installed, and that responds to mouse actions
 
-        inherits applicationTitle ("Simple graphics") size (theWidth', theHeight')
+        inherit applicationTitle ("Simple graphics") dimensions (theDimension')
 
-        def canvas: DrawingCanvas is public = drawingCanvasSize (theWidth, theHeight)
+        def canvas: DrawingCanvas is public = drawingCanvasDimensions (theDimension')
 
         children.push (canvas)
 
-        def before: Container = container.empty
-        def after: Container = container.empty
+        def before: Container = containerEmpty
+        def after: Container = containerEmpty
 
         arrangeVertical
         element.appendChild (before.element)
@@ -1285,7 +1304,7 @@ class graphicApplicationSize (theWidth':Number, theHeight':Number) -> GraphicApp
         method startGraphics -> Done {
             def parentElement = document.createElement ("div")
             parentElement.className := "height-calculator"
-            parentElement.style.width := "{theWidth}px"
+            parentElement.style.width := "{theDimension'.x}px"
             parentElement.appendChild (element.cloneNode (true))
             document.body.appendChild (parentElement)
             theHeight:= parentElement.offsetHeight
@@ -1456,19 +1475,21 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
 
 class drawable2DAt (location': Point)
-          size (width': Number, height': Number)
+          dimensions (dimension': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // abstract class for two-dimensional objects
 
-        inherits drawableAt (location') on (canvas')
-        var theWidth: Number:= width'
+        inherit drawableAt (location') on (canvas')
+        var theWidth: Number:= dimension'.x
 
         // Width of the object
         method width -> Number {theWidth}
-        var theHeight: Number:= height'
+        var theHeight: Number:= dimension'.y
 
         // Height of the object
         method height -> Number {theHeight}
+        
+        method dimensions -> Point {theWidth @ theHeight}
 
         // whether the object contains locn
         // Only checks whether is in the bounding box of the object!!
@@ -1495,11 +1516,11 @@ class drawable2DAt (location': Point)
         }
 }
 
-class resizable2DAt (location': Point) size (width': Number, height': Number)
+class resizable2DAt (location': Point) dimensions (dimensions': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // abstract class for 2 dimensional objects that can be resized.
 
-        inherits drawable2DAt (location') size (width', height') on (canvas')
+        inherit drawable2DAt (location') dimensions (dimensions') on (canvas')
 
         // Reset width of object to w
         method width:= (w: Number) -> Done {
@@ -1513,10 +1534,10 @@ class resizable2DAt (location': Point) size (width': Number, height': Number)
             notifyRedraw
         }
 
-        // Reset size of object to w x h
-        method setSize (w: Number, h: Number) -> Done {
-            width := w
-            height := h
+        // Reset dimensions of object to w x h
+        method dimensions:= (dimensions: Point) -> Done {
+            width := dimensions.x
+            height := dimensions.y
         }
 
         // Return string representation of object
@@ -1526,12 +1547,12 @@ class resizable2DAt (location': Point) size (width': Number, height': Number)
         }
 }
 
-class framedRectAt (location': Point) size (width': Number, height': Number)
+class framedRectAt (location': Point) dimensions (dimensions': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
-        // class to generate framed rectangle at (x',y') with size width' x height'
+        // class to generate framed rectangle at (x',y') with size dimensions'
         // created on canvas'
 
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
         addToCanvas (canvas')
 
         // Draw the framed rectangle on the canvas
@@ -1549,12 +1570,12 @@ class framedRectAt (location': Point) size (width': Number, height': Number)
         }
 }
 
-class filledRectAt (location': Point) size (width': Number, height': Number)
+class filledRectAt (location': Point) dimensions (dimensions': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
           
         // class to generate filled rectangle at (x', y') with size width' x height'
         // created on canvas'
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
 
         addToCanvas (canvas')
 
@@ -1574,12 +1595,12 @@ class filledRectAt (location': Point) size (width': Number, height': Number)
 }
 
 
-class framedOvalAt (location': Point) size (width': Number, height': Number)
+class framedOvalAt (location': Point) dimensions (dimensions': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // class to generate framed oval at (x',y') with size width' x height'
         // created on canvas'
 
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
         addToCanvas (canvas')
 
         // draw framed oval on canvas
@@ -1604,12 +1625,12 @@ class framedOvalAt (location': Point) size (width': Number, height': Number)
         }
 }
 
-class filledOvalAt (location': Point) size (width': Number, height': Number)
+class filledOvalAt (location': Point) dimensions (dimensions': Point)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // class to generate filled oval at (x',y') with size width' x height'
         // created on canvas'
 
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
 
         addToCanvas (canvas')
 
@@ -1635,14 +1656,14 @@ class filledOvalAt (location': Point) size (width': Number, height': Number)
         }
 }
 
-class framedArcAt (location': Point) size (width': Number, height': Number)
+class framedArcAt (location': Point) dimensions (dimensions': Point)
           from (startAngle: Number) to (endAngle: Number)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // class to generate framed arc at (x',y') with size width' x height'
         // from startAngle radians to endAngle radians created on canvas'
         // Note that angle 0 is in direction of positive x axis and increases in
         // angles go clockwise.
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
         addToCanvas (canvas')
 
         // Draw framed arc
@@ -1673,7 +1694,7 @@ class framedArcAt (location': Point) size (width': Number, height': Number)
 }
 
 
-class filledArcAt (location': Point) size (width': Number, height': Number)
+class filledArcAt (location': Point) dimensions (dimensions': Point)
           from (startAngle: Number) to (endAngle: Number)
           on (canvas': DrawingCanvas) -> Graphic2D {
         // class to generate filled arc at (x',y') with size width' x height'
@@ -1681,7 +1702,7 @@ class filledArcAt (location': Point) size (width': Number, height': Number)
         // Note that angle 0 is in direction of positive x axis and increases in
         // angles go clockwise.
 
-        inherits resizable2DAt (location') size (width', height') on (canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
         addToCanvas (canvas')
 
         // Draw filled arc on canvas
@@ -1715,23 +1736,23 @@ class filledArcAt (location': Point) size (width': Number, height': Number)
 //type DrawableImageFactory = {
     // type of factory for creating images on canvas
 
-    //at(location: Point) size(width: Number, height: Number)
+    //at(location: Point) dimensions(width: Number, height: Number)
           //file(fileName: String) on (canvas: DrawingCanvas) -> Graphic2D
 
-  //  at (location: Point) size (width: Number, height: Number)
+  //  at (location: Point) dimensions (width: Number, height: Number)
     //      url (url: String) on (canvas: DrawingCanvas) -> Graphic2D
 //}
 
 //def drawableImage: DrawableImageFactory is public = object {
 
 //  class at(location': Point)   // doesn't work - can't find image?
-//      size(width': Number, height': Number)
+//      dimensions(width': Number, height': Number)
 //      file(fileName: String)
 //      on(canvas': DrawingCanvas) -> Graphic2D {
 //    // class to generate an image on canvas' at location' with size width' x height'
 //    // The image is taken from the file fileName and must be in "png" format.
 //
-//    inherits resizable2D.at(location')size(width',height')on(canvas')
+//    inherit resizable2D.at(location')dimensions(width',height')on(canvas')
 //
 //    if (!dom.window.graceHasFile(fileName)) then {
 //      NoSuchFile.raise "The file '{fileName}' could not be found"
@@ -1755,13 +1776,13 @@ class filledArcAt (location': Point) size (width': Number, height': Number)
 
 
 class drawableImageAt(location': Point)
-          size(width': Number, height': Number)
+          dimensions(dimensions': Point)
           url(url: String)
           on(canvas': DrawingCanvas) -> Graphic2D {
         // Creates image from url and places on
         // canvas' at location' with size width' x height'
 
-        inherits resizable2DAt(location')size(width',height')on(canvas')
+        inherit resizable2DAt (location') dimensions (dimensions') on (canvas')
 
         var theImage:= document.createElement("img")
         theImage.src:= url
@@ -1798,7 +1819,7 @@ class drawableImageAt(location': Point)
 class lineFrom (start': Point) to (end': Point)
           on (canvas': DrawingCanvas) -> Line {
         // Create a line from start' to end' on canvas'
-        inherits drawableAt (start') on (canvas')
+        inherit drawableAt (start') on (canvas')
 
         var theEnd: Point:= end'
 
@@ -1911,7 +1932,7 @@ class lineFrom (pt: Point) length (len: Number) direction (radians: Number)
         // Creates a line from pt that has length len, and in direction radians on canvas'
 
       //  def endpt = pt + ((len * math.cos (radians)) @ (-len * math.sin (radians)))
-        inherits lineFrom (pt) to (pt + ((len * math.cos (radians)) @ 
+        inherit lineFrom (pt) to (pt + ((len * math.cos (radians)) @ 
                                         (-len * math.sin (radians)))) on (canvas')
 }
 
@@ -1919,14 +1940,14 @@ class textAt (location': Point) with (contents': String)
           on(canvas': DrawingCanvas) -> Text {
         // class to generate text at location' on canvas' initially showing
         // contents'
-        inherits drawableAt (location') on (canvas')
+        inherit drawableAt (location') on (canvas')
 
         var theContents: String:= contents'
         var fsize: Number is readable:= 10
-
+        var wid: Number := theContents.size * fsize / 2
         // Return approximation of the width of the text
         method width -> Number {
-            theContents.size * fsize / 2
+            wid
         }
 
         // Draw the text
@@ -1935,6 +1956,7 @@ class textAt (location': Point) with (contents': String)
             ctx.font:= "{fontSize}pt sans-serif"
             ctx.fillStyle:= "rgb({color.red}, {color.green}, {color.blue})"
             ctx.fillText (contents, location.x, location.y)
+            wid := ctx.measureText(theContents).width
             ctx.restore
         }
 
@@ -1972,7 +1994,7 @@ class textBoxWith (contents': String) -> TextBox {
         // Create a component in window that holds the string contents'
         // It cannot respond to user actions
 
-        inherits component.ofElementType ("span")
+        inherit componentOfElementType ("span")
 
         // Return string contents of the text box
         method contents -> String {
@@ -1995,7 +2017,7 @@ class textBoxWith (contents': String) -> TextBox {
 
 class buttonLabeled (label': String) -> Button {
         // Creates a button with label'
-        inherits labeledWidget.ofElementType ("button") labeled (label')
+        inherit labeledWidgetOfElementType ("button") labeled (label')
 
         method asString -> String {
             "a button labeled: {self.label}"
@@ -2018,7 +2040,7 @@ class buttonLabeled (label': String) -> Button {
 class textFieldLabeled (label':String) -> TextField {
         // Generates a text field with label'
 
-        inherits field.ofType ("text") labeled (label')
+        inherit fieldOfType ("text") labeled (label')
 
         method text -> String {
             // answer the text
@@ -2043,14 +2065,14 @@ class textFieldLabeled (label':String) -> TextField {
 class textFieldUnlabeled -> TextField {
         // Generates a text field without initial contents
 
-        inherits textFieldLabeled ""
+        inherit textFieldLabeled ""
 }
 
 
 class passwordFieldLabeled (lab: String) -> Input {
         // Generates password field with initial contents lab
 
-        inherits textFieldLabeled (lab)
+        inherit textFieldLabeled (lab)
 
         self.element.setAttribute ("type", "password")
 
@@ -2066,13 +2088,13 @@ class passwordFieldLabeled (lab: String) -> Input {
 
     // Generate an unlabeled password field
 class passwordFieldUnlabeled -> TextField {
-        inherits passwordFieldLabeled ""
+        inherit passwordFieldLabeled ""
 }
 
 class numberFieldLabeled (label': String) -> NumberField {
         // Generates a number field with initial contents label'
 
-        inherits field.ofType("number") labeled (label')
+        inherit fieldOfType("number") labeled (label')
 
         // Return the number in the field
         method number -> Number {
@@ -2096,7 +2118,7 @@ class numberFieldLabeled (label': String) -> NumberField {
 
 class numberFieldUnlabeled -> NumberField {
         // Creates an unlabeled number field
-        inherits numberFieldLabeled ""
+        inherit numberFieldLabeled ""
 }
 
 
@@ -2113,7 +2135,7 @@ class selectBoxOptionsFrom(options:Sequence<String>) labeled (label':String)
           -> Choice is confidential {
         // Creates choice box with list of items from options; initially shows label'
 
-        inherits labeledWidget.ofElementType("select") labeled(label')
+        inherit labeledWidgetOfElementType("select") labeled(label')
 
         def labeler:Foreign = document.createElement("option")
         labeler.value:= ""
