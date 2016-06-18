@@ -101,7 +101,7 @@ type Component = {
 type Container = Component & type {
 
     // The number of components inside this container.
-    size -> Number
+    numComponents -> Number
 
     // Retrieve the component at the given index.
     at (index: Number) -> Component
@@ -381,11 +381,25 @@ type Choice = Input & type {
 }
 
 // ** Colors *******************************************************************
-
 type Color = {
     red -> Number     // The red component of the color.
     green -> Number   // The green component of the color.
     blue -> Number    // The blue component of the color.
+}
+
+type ColorFactory = {
+    r (r': Number) g (g': Number) b (b': Number) -> Color
+    random -> Color
+    white -> Color
+    black -> Color
+    green -> Color
+    red -> Color
+    gray -> Color
+    blue -> Color
+    cyan -> Color
+    magenta -> Color
+    yellow -> Color
+    neutral -> Color
 }
 
 // Exception that may be thrown if the r, b, or g components
@@ -441,20 +455,20 @@ def color is public = object {
     def neutral:Color is public = r (220) g (220) b (220)
 }
 
-// Predefined colors.  Deprecated: use color.white, etc.
-def white:Color is public = color.r (255) g (255) b (255)
+//// Predefined colors.  Deprecated: use color.white, etc.
+//def white:Color is public = color.r (255) g (255) b (255)
 def black:Color is public = color.r (0) g (0) b (0)
-def green:Color is public = color.r (0) g (255) b (0)
-def red:Color is public = color.r (255) g (0) b (0)
-def gray:Color is public = color.r (60) g (60) b (60)
-def blue:Color is public = color.r (0) g (0) b (255)
-def cyan:Color is public = color.r (0) g (255) b (255)
-def magenta:Color is public = color.r (255) g (0) b (255)
-def yellow:Color is public = color.r (255) g (255) b (0)
-def neutral:Color is public = color.r (220) g (220) b (220)
+//def green:Color is public = color.r (0) g (255) b (0)
+//def red:Color is public = color.r (255) g (0) b (0)
+//def gray:Color is public = color.r (60) g (60) b (60)
+//def blue:Color is public = color.r (0) g (0) b (255)
+//def cyan:Color is public = color.r (0) g (255) b (255)
+//def magenta:Color is public = color.r (255) g (0) b (255)
+//def yellow:Color is public = color.r (255) g (255) b (0)
+//def neutral:Color is public = color.r (220) g (220) b (220)
 
 // A random color.  Deprecated: use color.random
-method randomColor -> Color { color.random }
+//method randomColor -> Color { color.random }
 
 // ** Events *******************************************************************
 
@@ -740,7 +754,7 @@ class containerFromElement (element') -> Container {
         def children = []
 
         // Number of children
-        method size -> Number {
+        method numComponents -> Number {
             children.size
         }
 
@@ -843,7 +857,7 @@ class containerFromElement (element') -> Container {
 }
 
     // Create an empty container ready to add in row
-class containerEmpty -> Container {
+class emptyContainer -> Container {
         inherit containerOfElementType ("div")
 
         self.arrangeHorizontal
@@ -851,7 +865,7 @@ class containerEmpty -> Container {
 
     // Set empty container with given width' and height'
 class containerSize (width': Number, height': Number) -> Container {
-        inherit containerEmpty
+        inherit emptyContainer
 
         self.element.style.width:= "{width'}px"
         self.element.style.height:= "{height'}px"
@@ -1276,8 +1290,8 @@ class graphicApplicationSize (theDimension':Point) -> GraphicApplication {
 
         children.push (canvas)
 
-        def before: Container = containerEmpty
-        def after: Container = containerEmpty
+        def before: Container = emptyContainer
+        def after: Container = emptyContainer
 
         arrangeVertical
         element.appendChild (before.element)
@@ -1610,6 +1624,7 @@ class filledRectAt (location': Point) size (dimensions': Point)
 
         // Return string representation of the filled rectangle
         method asString -> String {
+            print "called asString with {x},{y}"
             "FilledRect at ({x}, {y}) "++
                   "with height {height}, width {width}, and color {color}"
         }
@@ -2152,7 +2167,7 @@ class numberFieldUnlabeled -> NumberField {
 //    // initially shows first item in options
 //}
 
-class selectBoxOptionsFrom(options:Iterable[[String]]) labeled (label':String)
+class menuWithOptions(options:Iterable[[String]]) labeled (label':String)
           -> Choice is confidential {
         // Creates choice box with list of items from options; initially shows label'
 
@@ -2196,10 +2211,10 @@ class selectBoxOptionsFrom(options:Iterable[[String]]) labeled (label':String)
         }
 }
 
-class selectBoxOptionsFrom (options: Iterable[[String]]) -> Choice {
+class menuWithOptions (options: Iterable[[String]]) -> Choice {
         // Creates choice box with list of items from options
         // Initially shows first item in options
-        inherit selectBoxOptionsFrom (options) labeled ""
+        inherit menuWithOptions (options) labeled ""
         self.element.removeChild (self.labelElement)
     
 }
