@@ -101,7 +101,7 @@ type Component = {
 type Container = Component & type {
 
     // The number of components inside this container.
-    numComponents -> Number
+    size -> Number
 
     // Retrieve the component at the given index.
     at (index: Number) -> Component
@@ -568,6 +568,7 @@ class componentFromElement (element') -> Component {
         
         // dimensions of component
         method size -> Point {
+            print "component is {element}"
             element.width @ element.height
         }
 
@@ -754,7 +755,7 @@ class containerFromElement (element') -> Container {
         def children = []
 
         // Number of children
-        method numComponents -> Number {
+        method size -> Number {
             children.size
         }
 
@@ -2201,12 +2202,12 @@ class menuWithOptions(options:Iterable[[String]]) labeled (label':String)
                 self.element.value:= value
         }
 
-        // Return string representation of select box
+        // Return string representation of the menu
         method asString -> String {
                 if (self.label == "") then {
-                    "a select box"
+                    "a pop-up menu"
                 } else {
-                    "a select box labeled: {self.label}"
+                    "a pop-up menu labeled: {self.label}"
                 }
         }
 }
