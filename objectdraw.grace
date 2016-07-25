@@ -4,26 +4,23 @@ type Point = _prelude.Point
 type Iterable = _prelude.Iterable
 
 import "dom" as dom
-import "math" as math
-
+import "random" as random
 
 // ** Helpers ***************************************************
 
 // The frame rate of the drawing.
 def frameRate: Number = 30
 
-// A random number from m to n, inclusive.
 method randomNumberFrom (m: Number) to (n: Number) -> Number {
-    ((n - m) * math.random) + m
+    // A pseudo-random number in the interval [m..n)
+    ((n - m) * random.between0And1) + m
 }
 
-// A random integer from m to n, inclusive.
 method randomIntFrom (m: Number) to (n: Number) -> Number {
-    (((n - m + 1) * math.random).truncated % (n - m + 1)) + m
-}
+    // A pseudo-random integer in the interval [m..n]
+    random.integerIn (m) to (n) }
 
-// A rough approximation of the value of pi.
-def pi: Number is public = π
+def pi: Number is public = π      // an approximation of the value of π.
 
 type Foreign = Unknown
 
@@ -31,14 +28,14 @@ def document: Foreign = dom.document
 
 // Types of blocks representing functions taking an argument of type T
 // and returning a value of type R
-type Function<T, R> = prelude.Block1<T,R>
+type Function<T, R> = prelude.Fun<T,R>
 
 // Types of blocks representing functions taking two arguments of type T and U
 // and returning a value of type R
-type Function2<T, U, R> = prelude.Block2<T, U, R>
+type Function2<T, U, R> = prelude.Fun2<T, U, R>
 
 // Type of block taking argument of type T and returning Done
-type Procedure<T> = prelude.Block1<T,Done>
+type Procedure<T> = prelude.Proc<T>
 
 // ** Types ********************************************************************
 
@@ -510,7 +507,7 @@ class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent 
 
 class keyEventSource (source':Component) event(event':Foreign) -> KeyEvent {
     // Creates an event with the key-code from event'
-    inherit eventSource(source')
+    inherit eventSource (source')
     def code: Number is public = event'.which
     //def character is public = dom.window.String.fromCharCode(event'.which)
 
@@ -558,23 +555,22 @@ class componentFromElement (element') -> Component {
         element.width @ element.height
     }
 
-    // assocate action f with event' on component
     method on(event': String)
           do(f: Procedure[[Foreign]]) -> Done is confidential {
+        // associates action f with event' on this component
         element.addEventListener(event', f)
         done
     }
 
-    method on (kind: String)
-          withPointDo (f:MouseResponse) -> Done is confidential {
-              // associate response f with mouse event of kind
+    method on (kind: String) withPointDo (f:MouseResponse) -> Done is confidential {
+        // associates response f with mouse event of kind
         on (kind) do { event' ->
             f.apply (mouseEventSource (self) event (event'))
         }
     }
 
     method onMouseClickDo (f:MouseResponse) -> Done {
-        // Associates action f with mouse click event
+        // associates action f with mouse click event
         var lastDown: Foreign
 
         on "mousedown" do {event': Foreign ->
@@ -846,7 +842,7 @@ class inputFromElement (element') -> Input {
     // Respond with action f to this input gaining focus with the given event.
     method onFocusDo (f: Response) -> Done {
         element.addEventListener ("focus", { _ ->
-            f.apply (eventSource (self))
+            f.apply(eventSource(self))
         })
     }
 
@@ -1374,7 +1370,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
     var canvas: DrawingCanvas := canvas'    // The canvas this object is part of
 
-    var theColor: Color:= color.black       // the color of this object
+    var theColor: Color:= outer.color.black      // the color of this object
 
     method color -> Color {theColor}
 
@@ -1383,7 +1379,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
         notifyRedraw
     }
 
-    var theFrameColor: Color := color.black
+    var theFrameColor: Color := outer.color.black
 
     method frameColor -> Color { theFrameColor }
     method frameColor := (newfColor:Color) -> Done {
@@ -1590,7 +1586,7 @@ class filledRectAt (location': Point) size (dimensions': Point)
 
     // Return string representation of the filled rectangle
     method asString -> String {
-        "FilledRect at ({x}, {y}) "++
+        "FilledRect at ({x}, {y}) " ++
               "with height {height}, width {width}, and color {self.color}"
     }
 }
@@ -1893,19 +1889,18 @@ class lineFrom (start': Point) to (end': Point)
 //THIS SHOULD WORK BUT DOESN'T, SEE METHOD BELOW!
 //class lineFrom (pt: Point) length (len: Number) direction (radians: Number)
 //          on (canvas':DrawingCanvas) -> Line {
-    //        // Creates a line from pt that has length len, and in direction radians on canvas'
-    //
-    //      //  def endpt = pt + ((len * math.cos (radians)) @ (-len * math.sin (radians)))
-    //        inherit lineFrom (pt) to (pt + ((len * math.cos (radians)) @
-    //                                        (-len * math.sin (radians)))) on (canvas')
-    //}
+//        // Creates a line from pt that has length len, and in direction radians on canvas'
+//
+//        inherit lineFrom (pt) to (pt +
+//              ((len * radians.cos) @ (-len * radians.sin))) on (canvas')
+//}
 
 method lineFrom (pt: Point) length (len: Number) direction (radians: Number)
       on (canvas':DrawingCanvas) -> Line {
-    // Creates a line from pt that has length len, and in direction radians on canvas'
+    // Creates a line starting at pt of length len, in direction radians on canvas'
 
-          lineFrom (pt) to (pt + ((len * math.cos (radians)) @
-          (-len * math.sin (radians)))) on (canvas')
+    lineFrom (pt) to (pt +
+          ((len * radians.cos) @ (-len * radians.sin))) on (canvas')
 }
 
 class textAt (location': Point) with (contents': String)
@@ -1967,21 +1962,21 @@ class textBoxWith (contents': String) -> TextBox {
     // Create a component in window that holds the string contents'
     // It cannot respond to user actions
 
-    inherit componentOfElementType ("span")
+    inherit componentOfElementType "span"
 
     method contents -> String {
-        // Return string contents of the text box
+        // the string in this text box
         self.element.textContent
     }
 
     method contents:= (value: String) -> Done {
-        // Reset the contents of the text box to value
+        // changes the string in this text box to be `value`
         self.element.textContent:= value
         done
     }
 
-    // Text representation of the text box
     method asString -> String {
+        // a string describing this text box
         "a text box showing {contents}"
     }
 
