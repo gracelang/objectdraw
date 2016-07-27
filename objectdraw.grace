@@ -28,14 +28,14 @@ def document: Foreign = dom.document
 
 // Types of blocks representing functions taking an argument of type T
 // and returning a value of type R
-type Function<T, R> = prelude.Fun<T,R>
+type Function[[T, R]] = prelude.Fun[[T,R]]
 
 // Types of blocks representing functions taking two arguments of type T and U
 // and returning a value of type R
-type Function2<T, U, R> = prelude.Fun2<T, U, R>
+type Function2[[T, U, R]] = prelude.Fun2[[T, U, R]]
 
 // Type of block taking argument of type T and returning Done
-type Procedure<T> = prelude.Proc<T>
+type Procedure[[T]] = prelude.Proc[[T]]
 
 // ** Types ********************************************************************
 
