@@ -1471,7 +1471,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
 class drawable2DAt (location': Point)
       size (dimension': Point)
-      on (canvas': DrawingCanvas) -> Graphic2D {
+      on (canvas': DrawingCanvas) -> Graphic {
     // abstract class for two-dimensional objects
 
     inherit drawableAt (location') on (canvas')
