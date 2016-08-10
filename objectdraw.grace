@@ -1092,6 +1092,9 @@ class applicationTitle(initialTitle: String)
     method startApplication -> Done {
         if (!isOpened) then {
             theWindow:= dom.window.open("", "", "width={theWidth},height={theHeight}")
+            if (prelude.inBrowser && (dom.noObject == theWindow)) then {
+                EnvironmentException.raise("Failed to open the graphics window.\nIs your browser blocking pop-ups?")
+            }
             theWindow.document.title:= theTitle
             theWindow.document.body.appendChild(element)
 
