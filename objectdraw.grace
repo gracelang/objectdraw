@@ -342,7 +342,7 @@ type Labeled = Component & type {
 type Button = Labeled
 
 // Component that can take input and respond to an event
-type Input = Labeled & type {
+type Input = Component & type {
 
     // Respond to this input gaining focus with the given event.
     onFocusDo(f: Response) -> Done
