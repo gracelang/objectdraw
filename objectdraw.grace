@@ -5,7 +5,7 @@ type Iterable = _prelude.Iterable
 
 import "dom" as dom
 import "random" as random
-
+import "sys" as sys
 // ** Helpers ***************************************************
 
 // The frame rate of the drawing.
@@ -1093,7 +1093,8 @@ class applicationTitle(initialTitle: String)
         if (!isOpened) then {
             theWindow:= dom.window.open("", "", "width={theWidth},height={theHeight}")
             if (prelude.inBrowser && (dom.noObject == theWindow)) then {
-                EnvironmentException.raise("Failed to open the graphics window.\nIs your browser blocking pop-ups?")
+                print "Failed to open the graphics window.\nIs your browser blocking pop-ups?"
+                sys.exit(1)
             }
             theWindow.document.title:= theTitle
             theWindow.document.body.appendChild(element)
