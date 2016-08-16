@@ -727,17 +727,15 @@ class containerFromElement (element') -> Container {
 
     // Subcomponent at position index
     method at (index: Number) -> Component {
-        if ((index < 1) || (index > size)) then {
-            collections.BoundsError.raiseForIndex (index)
-        }
-
+        // No point in checking bounds, since children.at will do so
         children.at (index)
     }
 
     // Replace subcomponent at index by aComponent
     method at (index: Number) put (aComponent: Component) -> Done {
         if ((index < 1) || (index > (size + 1))) then {
-            BoundsError.raiseForIndex (index)
+            prelude.BoundsError.raise
+                "Can't put component at {index} because I have {size} elements"
         }
 
         if (index == (size + 1)) then {
@@ -1428,12 +1426,12 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
     // Determine whether this object contains the point at locn
     method contains (locn: Point) -> Boolean {
-        SubobjectResponsibility.raise "contains not implemented for {self}"
+        prelude.SubobjectResponsibility.raise "`contains(_)` not implemented by {self}"
     }
 
     // Determine whether this object overlaps otherObject
     method overlaps (otherObject: Graphic2D) -> Boolean {
-        SubobjectResponsibility.raise "overlaps not implemented for {self}"
+        prelude.SubobjectResponsibility.raise "`overlaps(_)` not implemented by {self}"
     }
 
     // Send this object up one layer on the screen
@@ -1463,7 +1461,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
     // Draw this object on the applet !! confidential
     method draw (ctx: Foreign) -> Done {
-        SubobjectResponsibility.raise "draw not implemented for {self}"
+        prelude.SubobjectResponsibility.raise "`draw(_)` not implemented by {self}"
     }
 
     // Return a string representation of the object
