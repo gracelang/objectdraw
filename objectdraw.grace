@@ -965,6 +965,9 @@ class applicationTitle(initialTitle: String)
     // size dimensions'
 
     inherit containerFromElement(document.createDocumentFragment)
+        alias containerElement = element
+        alias containerArragneHorizonlal = arrangeHorizontal
+        alias containerArrangeVertical = arrangeVertical
 
     var isOpened: Boolean:= false  // whether window is visible
     var theWindow: Foreign
@@ -979,7 +982,7 @@ class applicationTitle(initialTitle: String)
         if (isOpened) then {
             theWindow.document.body
         } else {
-            super.element
+            containerElement
         }
     }
 
@@ -990,7 +993,7 @@ class applicationTitle(initialTitle: String)
     // Components which exceed the width of the container will wrap around.
     method arrangeHorizontal -> Done {
         if (isOpened) then {
-            super.arrangeHorizontal
+            containerArragneHorizonlal
         } else {
             isHorizontal:= true
         }
@@ -1000,7 +1003,7 @@ class applicationTitle(initialTitle: String)
     // Components which exceed the height of the container will wrap around.
     method arrangeVertical -> Done {
         if (isOpened) then {
-            super.arrangeVertical
+            containerArrangeVertical
         } else {
             isHorizontal:= false
         }
