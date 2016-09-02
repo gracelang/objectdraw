@@ -496,6 +496,7 @@ class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent 
     // Creates a mouseEvent with the mouse location from event'
 
     inherit eventSource (source')
+    def source: Component is public = source'
     def at: Point is public = (event'.pageX - source.element.offsetLeft) @
           (event'.pageY - source.element.offsetTop)
 
@@ -508,6 +509,7 @@ class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent 
 class keyEventSource (source':Component) event(event':Foreign) -> KeyEvent {
     // Creates an event with the key-code from event'
     inherit eventSource (source')
+    def source: Component is public = source'
     def code: Number is public = event'.which
     //def character is public = dom.window.String.fromCharCode(event'.which)
 
@@ -645,6 +647,7 @@ class componentFromElement (element') -> Component {
         // Creates an event with the key-code from event'
         inherit eventSource(source')
         def code: Number is public = event'.which
+        def source: Component is public = source'
         //def character is public = dom.window.String.fromCharCode(event'.which)
 
         // String representation of the key event
@@ -714,6 +717,7 @@ class containerFromElement (element') -> Container {
     inherit componentFromElement (element')
 
     def children = []
+    def element = element'
 
     // Number of children
     method size -> Number {
@@ -836,7 +840,7 @@ class containerSize (width': Number, height': Number) -> Container {
 // A factory building components that take input
 class inputFromElement (element') -> Input {
     inherit componentFromElement(element')
-
+    def element = element'
     // Respond with action f to this input gaining focus with the given event.
     method onFocusDo (f: Response) -> Done {
         element.addEventListener ("focus", { _ ->
