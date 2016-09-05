@@ -506,14 +506,16 @@ class mouseEventSource (source':Component) event (event':Foreign) -> MouseEvent 
 }
 
 class keyEventSource (source':Component) event(event':Foreign) -> KeyEvent {
-    // Creates an event with the key-code from event'
+    // represents the keyboard event' from source'
     inherit eventSource (source')
-    def code: Number is public = event'.which
-    //def character is public = dom.window.String.fromCharCode(event'.which)
-
-    // String representation of the key event
-    method asString -> String {
-        "Event on {source} for key-code {code}"
+    method code → Number { event'.which }
+    method character → String { event'.key }
+    method shiftKey → Boolean { event'.shiftKey }
+    method ctrlKey → Boolean { event'.ctrlKey }
+    method altKey → Boolean { event'.altKey }
+    method metaKey → Boolean { event'.metaKey }
+    method asString → String {
+        "an event on {source} for key-code {code}"
     }
 
 }
@@ -639,19 +641,6 @@ class componentFromElement (element') -> Component {
                 f.apply (mouseEventSource (self) event (event'))
             }
         }
-    }
-
-    class keyEventSource (source':Component) event(event':Foreign) -> KeyEvent {
-        // Creates an event with the key-code from event'
-        inherit eventSource(source')
-        def code: Number is public = event'.which
-        //def character is public = dom.window.String.fromCharCode(event'.which)
-
-        // String representation of the key event
-        method asString -> String {
-            "Event on {source} for key-code {code}"
-        }
-
     }
 
     // Associate action f to key event of kind
