@@ -16,7 +16,8 @@ method randomNumberFrom (m: Number) to (n: Number) -> Number {
     ((n - m) * random.between0And1) + m
 }
 
-method randomIntFrom (m: Number) to (n: Number) -> Number {
+method randomIntFrom (m: Number) to (n: Number) -> Number 
+          is confidential {
     // A pseudo-random integer in the interval [m..n]
     random.integerIn (m) to (n) }
 
@@ -407,7 +408,7 @@ def ColorOutOfRange: prelude.ExceptionKind is public =
       prelude.ProgrammingError.refine "ColorOutOfRange"
 
 // Simple color class
-def color is public = object {
+def colorGen is public = object {
     class r (r': Number) g (g': Number) b (b': Number) -> Color {
         // Creates a color with rgb coordinates r', g', and b'
         if ((r' < 0) || (r' > 255)) then {
@@ -1364,7 +1365,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
 
     var canvas: DrawingCanvas := canvas'    // The canvas this object is part of
 
-    var theColor: Color:= outer.color.black      // the color of this object
+    var theColor: Color:= colorGen.black      // the color of this object
 
     method color -> Color {theColor}
 
@@ -1373,7 +1374,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
         notifyRedraw
     }
 
-    var theFrameColor: Color := outer.color.black
+    var theFrameColor: Color := colorGen.black
 
     method frameColor -> Color { theFrameColor }
     method frameColor := (newfColor:Color) -> Done {
