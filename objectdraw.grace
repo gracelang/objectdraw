@@ -22,8 +22,6 @@ method randomIntFrom (m: Number) to (n: Number) -> Number
     // A pseudo-random integer in the interval [m..n]
     random.integerIn (m) to (n) }
 
-def pi: Number is public = π      // an approximation of the value of π.
-
 type Foreign = Unknown
 
 def document: Foreign = dom.document
