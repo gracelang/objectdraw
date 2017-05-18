@@ -1869,20 +1869,11 @@ class lineFrom (start': Point) to (end': Point)
     }
 }
 
-//THIS SHOULD WORK BUT DOESN'T, SEE METHOD BELOW!
-//class lineFrom (pt: Point) length (len: Number) direction (radians: Number)
-//          on (canvas':DrawingCanvas) -> Line {
-//        // Creates a line from pt that has length len, and in direction radians on canvas'
-//
-//        inherit lineFrom (pt) to (pt +
-//              ((len * radians.cos) @ (-len * radians.sin))) on (canvas')
-//}
-
-method lineFrom (pt: Point) length (len: Number) direction (radians: Number)
+class lineFrom (pt: Point) length (len: Number) direction (radians: Number)
       on (canvas':DrawingCanvas) -> Line {
     // Creates a line starting at pt of length len, in direction radians on canvas'
 
-    lineFrom (pt) to (pt +
+    inherit lineFrom (pt) to (pt +
           ((len * radians.cos) @ (-len * radians.sin))) on (canvas')
 }
 
