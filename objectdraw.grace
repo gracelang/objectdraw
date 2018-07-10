@@ -86,7 +86,7 @@ type Component = {
 }
 
 // The type of components that contain other components.
-type Container = Component & type {
+type Container = Component & interface {
 
     // The number of components inside this container.
     size -> Number
@@ -117,7 +117,7 @@ type Container = Component & type {
 }
 
 // A standalone window which contains other components.
-type Application = Container & type {
+type Application = Container & interface {
 
     // The title of the application window.
     windowTitle -> String
@@ -191,7 +191,7 @@ type Graphic = {
 
 
 // DrawingCanvas holding graphic objects
-type DrawingCanvas = Component & type {
+type DrawingCanvas = Component & interface {
 
     // redraws the canvas and its contents regularly as needed
     startDrawing -> Done
@@ -228,7 +228,7 @@ type DrawingCanvas = Component & type {
 
 // Type of object that runs a graphical application that draws
 // objects on a canvas included in the window and responds to mouse actions
-type GraphicApplication = Application & type {
+type GraphicApplication = Application & interface {
     // canvas holds graphic objects on screen
     canvas -> DrawingCanvas
 
@@ -261,7 +261,7 @@ type GraphicApplication = Application & type {
 }
 
 // Two-dimensional objects that can also be resized
-type Graphic2D = Graphic & type {
+type Graphic2D = Graphic & interface {
 
     // dimensions of object
     width -> Number
@@ -275,7 +275,7 @@ type Graphic2D = Graphic & type {
 }
 
 // One-dimensional objects
-type Line = Graphic & type {
+type Line = Graphic & interface {
     // start and end of line
     start -> Point
     end -> Point
@@ -287,7 +287,7 @@ type Line = Graphic & type {
 }
 
 // Text that can be drawn on a canvas.
-type Text = Graphic & type {
+type Text = Graphic & interface {
 
     // return the contents displayed in the item
     contents -> String
@@ -307,7 +307,7 @@ type Text = Graphic & type {
 }
 
 // Component of window that holds text
-type TextBox = Component & type {
+type TextBox = Component & interface {
 
     // The text contents of the box.
     contents -> String
@@ -316,7 +316,7 @@ type TextBox = Component & type {
 }
 
 // Component of window that holds text
-type Labeled = Component & type {
+type Labeled = Component & interface {
 
     // The label name.
     label -> String
@@ -328,7 +328,7 @@ type Labeled = Component & type {
 type Button = Labeled
 
 // Component that can take input and respond to an event
-type Input = Component & type {
+type Input = Component & interface {
 
     // Respond to this input gaining focus with the given event.
     onFocusDo(f: Response) -> Done
@@ -342,7 +342,7 @@ type Input = Component & type {
 }
 
 // Component in window taking user text input
-type TextField = Input & type {
+type TextField = Input & interface {
 
     // The contents of the text field.
     text -> String
@@ -351,7 +351,7 @@ type TextField = Input & type {
 }
 
 // Component in window taking user numeric input
-type NumberField = Input & type {
+type NumberField = Input & interface {
 
     // The contents of the number field.
     number -> Number
@@ -360,7 +360,7 @@ type NumberField = Input & type {
 }
 
 // Type for pop-up menus
-type Choice = Input & type {
+type Choice = Input & interface {
 
     // The currently selected option.
     selected -> String
@@ -451,12 +451,12 @@ type Event = {
 }
 
 // Mouse event containing mouse location when event generated
-type MouseEvent = Event & type {
+type MouseEvent = Event & interface {
     at -> Point
 }
 
 // Type of an event associated with a key press
-type KeyEvent = Event & type {
+type KeyEvent = Event & interface {
     //character -> String
     code -> Number
     //modifiers -> Modifiers
