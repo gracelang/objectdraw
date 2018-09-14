@@ -398,6 +398,7 @@ def ColorOutOfRange: prelude.ExceptionKind is public =
 // Simple color class
 def colorGen is public = object {
     class r (r': Number) g (g': Number) b (b': Number) -> Color {
+        use equality
         // Creates a color with rgb coordinates r', g', and b'
         if ((r' < 0) || (r' > 255)) then {
             ColorOutOfRange.raise "red index {r'} out of bounds 0..255"
@@ -1332,6 +1333,8 @@ class graphicApplicationSize (theDimension':Point) -> GraphicApplication {
 class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
     // abstract superclass for drawable objects (of type Graphic)
 
+    use identityEquality
+
     // location of object on screen
     var location: Point is readable:= location'
 
@@ -1344,13 +1347,7 @@ class drawableAt (location':Point) on (canvas':DrawingCanvas) -> Graphic {
     method y -> Number {
         location.y
     }
-
-    method == (other) {
-        // Object identity.
-        // This doesn't seem right to apb, but it's what the rest of the code assumes.
-        self.isMe(other)
-    }
-
+    
     var canvas: DrawingCanvas := canvas'    // The canvas this object is part of
 
     var theColor: Color:= colorGen.black      // the color of this object
