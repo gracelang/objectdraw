@@ -79,7 +79,7 @@ method for[[T]](range':Iterable[[T]]) pausing (pauseTime: Number) do (block:Proc
 // iterations; block should take a Number object as a parameter.  When range'
 // is exhausted, execute endBlock.
 method for[[T]] (range':Iterable[[T]]) pausing (pauseTime:Number)
-         do (block: Block[[Number,Done]]) finally(endBlock:Block) -> Done {
+         do (block: Procedure0[[Number,Done]]) finally(endBlock:Procedure0) -> Done {
     def it: Iterator[[T]] = range'.iterator
     while {it.hasNext} pausing (pauseTime) do { block.apply(it.next) }
          finally(endBlock)
