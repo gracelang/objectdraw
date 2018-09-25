@@ -7,6 +7,19 @@ import "sys" as sys
 
 inherit sg.methods
 
+trait equality {
+    method == (other) {required}
+//    method hash is required     // should obey invariant (a == b) => (a.hash == b.hash).
+    method ≠ (other)  { (self == other).not }
+    method :: (obj) { binding.key (self) value (obj) }
+}
+
+trait identityEquality {
+    use equality
+    method == (other) { self.isMe(other) }
+    method hash { self.myIdentityHash }
+}
+
 // ** Helpers ***************************************************
 
 // The frame rate of the drawing.
