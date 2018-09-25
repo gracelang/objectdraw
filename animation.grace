@@ -5,35 +5,36 @@ type NumberBlock = Function0⟦Number⟧
 type Animator = {
     // type of object that can simulate parallel animations
 
-    while (condition: Predicate0) pausing (pauseTime: Number)
-          do (block: Procedure0) -> Done
+    while (condition:Predicate0) pausing (pauseTime:Number)
+          do (block:Procedure0) -> Done
     // Repeatedly execute block while condition is true
 
-    while (condition: Predicate0) pausing (pauseTime: Number)
-          do (block: Procedure0) finally (endBlock: Procedure0) -> Done
+    while (condition:Predicate0) pausing (pauseTime:Number)
+          do (block:Procedure0) finally (endBlock:Procedure0) -> Done
     // Repeatedly execute block while condition is true, pausing pauseTime
     // between iterations. When condition fails, execute endBlock.
 
-    while (condition: Predicate0) pauseVarying (timeBlock: NumberBlock)
-          do (block: Procedure0) -> Done
+    while (condition:Predicate0) pauseVarying (timeBlock:NumberBlock)
+          do (block:Procedure0) -> Done
     // Repeatedly execute block while condition is true, pausing a variable
     // amount of time (obtained by evaluating timeBlock) between iterations.
     // When condition fails, execute endBlock.
 
-    for[[T]] (range': Iterable[[T]]) pausing (pauseTime: Number) do (block: Block1[[T,Done]]) -> Done
+    for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧) -> Done
     // Repeatedly execute block while condition is true
 
-    for[[T]] (range':Iterable[[T]]) pausing (pauseTime: Number) do (block:Block1[[T,Done]])
-          finally (endBlock: Procedure0) -> Done
+    for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧)
+          finally (endBlock:Procedure0) -> Done
     // Repeatedly execute block while condition is true
     // when condition fails, execute endBlock.
 
 }
 
-// Repeatedly execute block while condition is true
 method while(condition:Predicate0) pausing (pauseTime:Number)
                   do (block:Procedure0) -> Done {
-    def id: Number = timer.every (pauseTime) do {
+    // Repeatedly execute block while condition is true
+
+    def id:Number = timer.every (pauseTime) do {
         if (condition.apply) then {
             block.apply
         } else {
@@ -42,10 +43,11 @@ method while(condition:Predicate0) pausing (pauseTime:Number)
     }
 }
 
-// Repeatedly execute block while condition is true, pausing by pauseTime
-// between iterations. When condition fails, execute endBlock.
-method while (condition: Predicate0) pausing (pauseTime: Number)
-          do (block:Procedure0) finally (endBlock: Procedure0) -> Done {
+method while (condition:Predicate0) pausing (pauseTime:Number)
+          do (block:Procedure0) finally (endBlock:Procedure0) -> Done {
+    // Repeatedly execute block while condition is true, pausing by pauseTime
+    // between iterations. When condition fails, execute endBlock.
+
     def id:Number = timer.every(pauseTime)do{
         if (condition.apply) then {
             block.apply
@@ -56,10 +58,11 @@ method while (condition: Predicate0) pausing (pauseTime: Number)
     }
 }
 
-// Repeatedly execute block while condition is true, pausing by timeBlock.apply
-// between iterations. 
-method while(condition:Predicate0) pauseVarying (timeBlock)
+method while(condition:Predicate0) pauseVarying (timeBlock:NumberBlock)
           do (block:Procedure0)  -> Done {
+    // Repeatedly execute block while condition is true, pausing by
+    // timeBlock.apply between iterations.
+
     if (condition.apply) then {
         block.apply
         timer.after(timeBlock.apply) do {
@@ -68,19 +71,22 @@ method while(condition:Predicate0) pauseVarying (timeBlock)
     }
 }
 
-// Repeatedly execute block for each value in range', pausing pauseTime between
-// iterations; block should take an element of range' as an argument.
-method for[[T]](range':Iterable[[T]]) pausing (pauseTime: Number) do (block:Procedure1[[T]])-> Done {
+method for⟦T⟧(range':Iterable⟦T⟧) pausing (pauseTime:Number)
+          do (block:Procedure1⟦T⟧) -> Done {
+    // Repeatedly execute block for each value in range', pausing pauseTime between
+    // iterations; block should take an element of range' as an argument.
+
     def it = range'.iterator
     while {it.hasNext} pausing (pauseTime) do { block.apply(it.next) }
 }
 
-// Repeatedly execute block for each value in range', pausing pauseTime between
-// iterations; block should take a Number object as a parameter.  When range'
-// is exhausted, execute endBlock.
-method for[[T]] (range':Iterable[[T]]) pausing (pauseTime:Number)
-         do (block: Block[[Number,Done]]) finally(endBlock:Block) -> Done {
-    def it: Iterator[[T]] = range'.iterator
+method for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number)
+         do (block:Procedure1⟦T⟧) finally(endBlock:Procedure0) -> Done {
+    // Repeatedly execute block for each value in range', pausing pauseTime between
+    // iterations; block should take a T object as a parameter.  When range'
+    // is exhausted, execute endBlock.
+
+    def it:Iterator⟦T⟧ = range'.iterator
     while {it.hasNext} pausing (pauseTime) do { block.apply(it.next) }
          finally(endBlock)
 }
