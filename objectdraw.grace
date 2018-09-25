@@ -394,9 +394,9 @@ type ColorFactory = {
 // are not between 0 and 255 (inclusive)
 def ColorOutOfRange: prelude.ExceptionKind is public =
       prelude.ProgrammingError.refine "ColorOutOfRange"
-
+     
 // Simple color class
-def colorGen is public = object {
+def colorGen: ColorFactory is public = object {
     class r (r': Number) g (g': Number) b (b': Number) -> Color {
         // Creates a color with rgb coordinates r', g', and b'
         if ((r' < 0) || (r' > 255)) then {
