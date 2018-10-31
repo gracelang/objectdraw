@@ -1139,7 +1139,7 @@ class drawingCanvasSize (dimensions': Point) -> DrawingCanvas {
     method size -> Point {element.width @ element.height}
 
     // list of all objects on canvas (hidden or not)
-    var theGraphics:= [ ] // emptyList
+    var theGraphics:= [ ]
 
     var redraw: Boolean:= false
 
