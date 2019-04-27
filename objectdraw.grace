@@ -1,4 +1,3 @@
-#pragma ExtendedLineups
 dialect "none"
 import "standardGrace" as sg
 import "dom" as dom
@@ -688,33 +687,30 @@ class containerOfElementType (tagName: String) -> Component {
     inherit containerFromElement (document.createElement (tagName))
 }
 
-// Create a new Component from element'
+
 class containerFromElement (element') -> Container {
+    // Create a and return new Container from element'
     inherit componentFromElement (element')
 
-    def children = []
+    def children = list []
 
-    // Number of children
     method size -> Number {
+        // answers the number of children of this container
         children.size
     }
-
-    // Is it empty?
     method isEmpty -> Boolean {
+        // is this container empty?
         size == 0
     }
-
-    // Subcomponent at position index
     method at (index: Number) -> Component {
-        // No point in checking bounds, since children.at will do so
-        children.at (index)
+        // returns my subcomponent at position index
+        children.at (index)   // children.at will check bounds
     }
-
-    // Replace subcomponent at index by aComponent
     method at (index: Number) put (aComponent: Component) -> Done {
+        // replaces subcomponent at index by aComponent
         if ((index < 1) || (index > (size + 1))) then {
             prelude.BoundsError.raise
-                "Can't put component at {index} because I have {size} elements"
+                "Can't put component at {index} because I have only {size} elements"
         }
 
         if (index == (size + 1)) then {
@@ -722,46 +718,35 @@ class containerFromElement (element') -> Container {
         } else {
             element.insertBefore (aComponent.element, children.at (index).element)
         }
-
         children.at (index) put (aComponent)
-
         done
     }
-
-    // Add aComponent after all existing components in the container
     method append (aComponent: Component) -> Done {
+        // adds aComponent after all my existing components
         element.appendChild (aComponent.element)
-
         children.push (aComponent)
-
         done
     }
-
-    // Add aComponent before all existing components in the container
     method prepend (aComponent: Component) -> Done {
+        // adds aComponent before all my existing components
         if (isEmpty) then {
             element.appendChild (aComponent.element)
         } else {
             element.insertBefore (aComponent.element, element.firstChild)
         }
-
         children.unshift (aComponent)
-
         done
     }
-
-    // Apply f to all children of container.
     method do (f: Procedure1⟦Component⟧) -> Done {
+        // apply f to all my children
         for (children) do {aComponent: Component ->
             f.apply(aComponent)
         }
     }
-
-    // Generalize binary function f to apply to all children of container.
-    // Value if no children is initial
-    method fold⟦T⟧(f: Function2⟦T, Component, T⟧)
-          startingWith (initial: T) -> T {
-        var value: T:= initial
+    method fold⟦T⟧(f: Function2⟦T, Component, T⟧) startingWith (initial: T) -> T {
+        // answers the fold of the binary function f over all my children.
+        // answers initial if I have no children.
+        var value:T := initial
 
         for (children) do {aComponent: Component ->
             value:= f.apply (value, aComponent)
@@ -769,47 +754,40 @@ class containerFromElement (element') -> Container {
 
         value
     }
-
-    // Make container more flexible
     method flex -> Done is confidential {
+        // makes me more flexible
         element.style.display := "inline-flex"
         element.style.justifyContent := "center"
         element.style.flexFlow := "row wrap"
     }
-
-    // Arrange elements in rows
     method arrangeHorizontal -> Done {
+        // arranges my elements in rows
         flex
         element.style.flexDirection:= "row"
     }
-
-    // Arrange elements in columns
     method arrangeVertical -> Done {
+        // Arranges my elements in columns
         flex
         element.style.flexDirection := "column"
     }
-
-    // return description of container
     method asString -> String {
+        // answers a description of me
         "container: with {size} children"
     }
 }
 
-// Create an empty container ready to add in row
 class emptyContainer -> Container {
-    inherit containerOfElementType ("div")
-
+    // creates and returns an empty container ready to add in row
+    inherit containerOfElementType "div"
     self.arrangeHorizontal
 }
 
-// Set empty container with given width' and height'
-class containerSize (width': Number, height': Number) -> Container {
+class containerSize (width':Number, height':Number) -> Container {
+    // creates and returns an empty container with width' and height'
     inherit emptyContainer
-
     self.element.style.width:= "{width'}px"
     self.element.style.height:= "{height'}px"
     self.element.style.overflow:= "auto"
-
 }
 
 // A factory building components that take input
@@ -940,7 +918,7 @@ class eventLogKind(kind': String)
 
 class applicationTitle(initialTitle: String)
       size (dimensions': Point) -> Application {
-    // Create an application with window titled initialTitle and
+    // Creates and returns an Application with window titled initialTitle and
     // size dimensions'
 
     inherit containerFromElement(document.createDocumentFragment)
@@ -955,7 +933,7 @@ class applicationTitle(initialTitle: String)
     var theWidth: Number:= dimensions'.x
     var theHeight: Number:= dimensions'.y
 
-    def events = []
+    def events = list []
 
     method element -> Foreign {
         if (isOpened) then {
@@ -969,7 +947,7 @@ class applicationTitle(initialTitle: String)
     var isHorizontal: Boolean:= true
 
     // Arrange the contents of this container along the horizontal axis.
-    // Components which exceed the width of the container will wrap around.
+    // Components that exceed the width of the container will wrap around.
     method arrangeHorizontal -> Done {
         if (isOpened) then {
             containerArrangeHorizontal
@@ -1138,13 +1116,12 @@ class drawingCanvasSize (dimensions': Point) -> DrawingCanvas {
 
     method size -> Point {element.width @ element.height}
 
-    // list of all objects on canvas (hidden or not)
-    var theGraphics:= [ ]
+    var theGraphics := list [ ]   // all the objects on this canvas (hidden or not)
 
     var redraw: Boolean:= false
 
-    // Inform canvas that it needs to be redrawn
     method notifyRedraw -> Done {
+        // tels this canvas that it needs to be redrawn
         redraw:= true
     }
 
@@ -1159,7 +1136,7 @@ class drawingCanvasSize (dimensions': Point) -> DrawingCanvas {
 
     // remove all items from canvas
     method clear -> Done {
-        theGraphics:= []
+        theGraphics.clear
         notifyRedraw
     }
 
