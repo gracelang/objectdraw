@@ -911,9 +911,9 @@ class fieldOfType(inputType: String) labeled(label': String) -> Input {
 
 // Log entry to keep take of response to an event
 class eventLogKind(kind': String)
-      response(response': Procedure0) is confidential {
+      response(response': Response) is confidential {
     def kind: String is public = kind'
-    def response: Procedure0 is public = response'
+    def response: Response is public = response'
 }
 
 class applicationTitle(initialTitle: String)
