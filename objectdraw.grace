@@ -28,7 +28,7 @@ def document: Foreign = dom.document
 // ** Types ********************************************************************
 
 // The super-type of all components in a GUI.
-type Component = {
+type Component = interface {
 
     // The underlying DOM element of the component.
     element
@@ -132,7 +132,7 @@ type Application = Container & interface {
 }
 
 // Objects that can be drawn on a canvas and moved around.
-type Graphic = {
+type Graphic = interface {
 
     // The location of this object from the top-left corner of the screen.
     location -> Point
@@ -158,13 +158,13 @@ type Graphic = {
     visible:= (value: Boolean) -> Done
 
     // Move this object to the given point on the canvas.
-    moveTo(location: Point) -> Done
+    moveTo(newLocation: Point) -> Done
 
     // Move this object by the given distances on the canvas.
     moveBy(dx: Number, dy: Number) -> Done
 
     // Whether the given location is inside this object.
-    contains(location: Point) -> Boolean
+    contains(newLocation: Point) -> Boolean
 
     // Whether any point in the given graphic is inside this object.
     overlaps(graphic: Graphic2D) -> Boolean
@@ -269,8 +269,8 @@ type Graphic2D = Graphic & interface {
 
     // Change dimensions of object
     size := (dimensions: Point) -> Done
-    width := (width: Number) -> Done
-    height := (height: Number) -> Done
+    width := (newWidth: Number) -> Done
+    height := (newHeight: Number) -> Done
 }
 
 // One-dimensional objects
@@ -368,13 +368,13 @@ type Choice = Input & interface {
 }
 
 // ** Colors *******************************************************************
-type Color = {
+type Color = interface {
     red -> Number     // The red component of the color.
     green -> Number   // The green component of the color.
     blue -> Number    // The blue component of the color.
 }
 
-type ColorFactory = {
+type ColorFactory = interface {
     r (r': Number) g (g': Number) b (b': Number) -> Color
     random -> Color
     white -> Color
@@ -446,7 +446,7 @@ def colorGen: ColorFactory is public = object {
 // ** Events *******************************************************************
 
 // Generic event containing source of the event.
-type Event = {
+type Event = interface {
     source -> Component
 }
 
@@ -1720,7 +1720,7 @@ class drawableImageAt (location': Point)
 }
 
 // Type of factory for creating line segments
-//type LineFactory = {
+//type LineFactory = interface {
     //
     //    from (start:Point) to (end:Point) on (canvas: DrawingCanvas) -> Line
     //    // Creates a line from start to end on canvas
@@ -2077,7 +2077,7 @@ class menuWithOptions (options: Iterable⟦String⟧) -> Choice {
 }
 
 
-type Audio = {
+type Audio = interface {
     // An audio file that can be played
 
     source -> String        // The source URL of the audio.
