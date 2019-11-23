@@ -1,3 +1,4 @@
+dialect "standard"
 import "timer" as timer
 
 type NumberBlock = Function0⟦Number⟧
@@ -20,10 +21,10 @@ type Animator = {
     // amount of time (obtained by evaluating timeBlock) between iterations.
     // When condition fails, execute endBlock.
 
-    for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧) -> Done
+    for⟦T⟧ (range':Collection⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧) -> Done
     // Repeatedly execute block while condition is true
 
-    for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧)
+    for⟦T⟧ (range':Collection⟦T⟧) pausing (pauseTime:Number) do (block:Procedure1⟦T⟧)
           finally (endBlock:Procedure0) -> Done
     // Repeatedly execute block while condition is true
     // when condition fails, execute endBlock.
@@ -71,7 +72,7 @@ method while(condition:Predicate0) pauseVarying (timeBlock:NumberBlock)
     }
 }
 
-method for⟦T⟧(range':Iterable⟦T⟧) pausing (pauseTime:Number)
+method for⟦T⟧(range':Collection⟦T⟧) pausing (pauseTime:Number)
           do (block:Procedure1⟦T⟧) -> Done {
     // Repeatedly execute block for each value in range', pausing pauseTime between
     // iterations; block should take an element of range' as an argument.
@@ -80,7 +81,7 @@ method for⟦T⟧(range':Iterable⟦T⟧) pausing (pauseTime:Number)
     while {it.hasNext} pausing (pauseTime) do { block.apply(it.next) }
 }
 
-method for⟦T⟧ (range':Iterable⟦T⟧) pausing (pauseTime:Number)
+method for⟦T⟧ (range':Collection⟦T⟧) pausing (pauseTime:Number)
          do (block:Procedure1⟦T⟧) finally(endBlock:Procedure0) -> Done {
     // Repeatedly execute block for each value in range', pausing pauseTime between
     // iterations; block should take a T object as a parameter.  When range'
