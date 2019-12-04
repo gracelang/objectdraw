@@ -1,0 +1,5 @@
+j2/objectdraw.js: j2/standardBundle.js j2/objectdrawBundle.js
+j2/objectdrawBundle.js: j2/dom.js j2/random.js j2/sys.js j2/intrinsic.js j2/standard.js
+j2/rtobjectdraw.js: j2/standardBundle.js j2/objectdrawBundle.js j2/requireTypes.js
+j2/stobjectdraw.js: j2/standardBundle.js j2/objectdrawBundle.js j2/staticTypes.js
+j2/animation.js: j2/standard.js j2/timer.js
