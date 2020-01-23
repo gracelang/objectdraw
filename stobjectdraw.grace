@@ -6,5 +6,5 @@ import "staticTypes" as staticTypes
 use standardBundle.open
 use objectdrawBundle.open
 
-def thisDialect = staticTypes.thisDialect
+def thisDialect is public = staticTypes.thisDialect
 

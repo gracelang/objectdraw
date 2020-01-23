@@ -6,4 +6,4 @@ import "requireTypes" as requireTypes
 use standardBundle.open
 use objectdrawBundle.open
 
-def thisDialect = requireTypes.thisDialect
+def thisDialect is public = requireTypes.thisDialect
