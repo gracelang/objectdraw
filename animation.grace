@@ -3,7 +3,7 @@ import "timer" as timer
 
 type NumberBlock = Function0⟦Number⟧
 
-type Animator = {
+type Animator = interface {
     // type of object that can simulate parallel animations
 
     while (condition:Predicate0) pausing (pauseTime:Number)

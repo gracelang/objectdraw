@@ -458,7 +458,7 @@ trait open {
 
     // ** Internal factories *******************************************************
 
-    type ComponentFactory⟦T where T <: Component⟧ = {
+    type ComponentFactory⟦T where T <: Component⟧ = interface {
 
         fromElement (element) -> T
         // Build a component around the existing element.
