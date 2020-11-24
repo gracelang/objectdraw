@@ -376,9 +376,9 @@ trait open {
 
         method random -> Color {
             // return a random color.
-            r (random.integerIn 0 to 255)
-                  g (random.integerIn 0 to 255)
-                  b (random.integerIn 0 to 255)
+            r (outer.random.integerIn 0 to 255)
+                  g (outer.random.integerIn 0 to 255)
+                  b (outer.random.integerIn 0 to 255)
         }
 
         def white:Color is public = r 255 g 255 b 255
