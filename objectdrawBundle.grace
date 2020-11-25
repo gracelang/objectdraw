@@ -14,11 +14,6 @@ def frameRate:Number = 30      // The frame rate of the drawing
 
 trait open {
 
-//    method randomNumberFrom (m: Number) to (n: Number) -> Number {
-//        // A pseudo-random number in the interval [m..n)
-//        ((n - m) * random.between0And1) + m
-//  }  NO LONGER NEEDED
-
     // ** Types ********************************************************************
 
     type Component = Object & interface {
