@@ -1,6 +1,6 @@
 dialect "standard"
 import "dom" as dom
-import "random" as random
+import "random" as rand
 import "sys" as sys
 import "intrinsic" as intrinsic
 
@@ -14,10 +14,10 @@ def frameRate:Number = 30      // The frame rate of the drawing
 
 trait open {
 
-    method randomNumberFrom (m: Number) to (n: Number) -> Number {
-        // A pseudo-random number in the interval [m..n)
-        ((n - m) * random.between0And1) + m
-    }
+//    method randomNumberFrom (m: Number) to (n: Number) -> Number {
+//        // A pseudo-random number in the interval [m..n)
+//        ((n - m) * random.between0And1) + m
+//  }  NO LONGER NEEDED
 
     // ** Types ********************************************************************
 
@@ -376,9 +376,9 @@ trait open {
 
         method random -> Color {
             // return a random color.
-            r (outer.random.integerIn 0 to 255)
-                  g (outer.random.integerIn 0 to 255)
-                  b (outer.random.integerIn 0 to 255)
+            r (rand.integerIn 0 to 255)
+                  g (rand.integerIn 0 to 255)
+                  b (rand.integerIn 0 to 255)
         }
 
         def white:Color is public = r 255 g 255 b 255
