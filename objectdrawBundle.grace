@@ -657,7 +657,7 @@ trait open {
         method append (aComponent: Component) -> Done {
             // adds aComponent after all my existing components
             element.appendChild (aComponent.element)
-            children.push (aComponent)
+            children.addLast (aComponent)
             done
         }
         method prepend (aComponent: Component) -> Done {
@@ -667,7 +667,7 @@ trait open {
             } else {
                 element.insertBefore (aComponent.element, element.firstChild)
             }
-            children.unshift (aComponent)
+            children.addFirst (aComponent)
             done
         }
         method do (f: Procedure1⟦Component⟧) -> Done {
@@ -905,7 +905,7 @@ trait open {
             if (isOpened) then {
                 theWindow.addEventListener (kind, response)
             } else {
-                events.push (eventLogKind (kind) response (response))
+                events.addLast (eventLogKind (kind) response (response))
             }
         }
 
@@ -1075,7 +1075,7 @@ trait open {
 
         // Add new item d to canvas
         method add (d:Graphic) -> Done {
-            theGraphics.push(d)
+            theGraphics.addLast(d)
             notifyRedraw
         }
 
@@ -1090,14 +1090,14 @@ trait open {
         // send item d to front/top layer of canvas
         method sendToFront (aGraphic: Graphic) -> Done {
             theGraphics.remove (aGraphic)
-            theGraphics.push (aGraphic)
+            theGraphics.addLast (aGraphic)
             notifyRedraw
         }
 
         // send item d to back/bottom layer of canvas
         method sendToBack (aGraphic: Graphic) -> Done {
             theGraphics.remove (aGraphic)
-            theGraphics.unshift (aGraphic)
+            theGraphics.addFirst (aGraphic)
             notifyRedraw
         }
 
@@ -1144,7 +1144,7 @@ trait open {
 
         def canvas: DrawingCanvas is public = drawingCanvasSize (theDimension')
 
-        children.push (canvas)
+        children.addLast (canvas)
 
         def before: Container = emptyContainer
         def after: Container = emptyContainer
@@ -1157,13 +1157,13 @@ trait open {
         // Add a component to the top of the window.
         method prepend (aComponent: Component) -> Done {
             before.prepend (aComponent)
-            children.unshift (aComponent)
+            children.addFirst (aComponent)
         }
 
         // Add a component to the bottom of the window.
         method append (aComponent: Component) -> Done {
             after.append (aComponent)
-            children.push (aComponent)
+            children.addLast (aComponent)
         }
 
         // The following methods are defind to be called in response to mouse
